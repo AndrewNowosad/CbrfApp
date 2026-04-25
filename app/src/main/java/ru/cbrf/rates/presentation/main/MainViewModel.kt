@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import ru.cbrf.rates.data.local.prefs.AppPreferences
 import ru.cbrf.rates.domain.model.CurrencyRateUiModel
+import ru.cbrf.rates.domain.repository.RateRepository
 import ru.cbrf.rates.domain.usecase.GetRatesForDisplayUseCase
 import ru.cbrf.rates.domain.usecase.RefreshTodayRatesUseCase
 import java.time.LocalDate
@@ -31,6 +32,7 @@ data class MainUiState(
 class MainViewModel @Inject constructor(
     private val getRatesForDisplay: GetRatesForDisplayUseCase,
     private val refreshTodayRates: RefreshTodayRatesUseCase,
+    private val repository: RateRepository,
     private val appPreferences: AppPreferences
 ) : ViewModel() {
 
@@ -92,6 +94,8 @@ class MainViewModel @Inject constructor(
         _displayDate.value = date
         viewModelScope.launch {
             _isLoading.value = true
+            _hasError.value = false
+            repository.fetchRatesIfNeeded(date).onFailure { _hasError.value = true }
             loadRatesForDate(date)
             _isLoading.value = false
         }
