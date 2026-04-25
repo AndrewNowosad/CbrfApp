@@ -44,9 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -73,8 +71,6 @@ fun MainScreen(
     val state by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
-    var isRefreshing by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
 
     LaunchedEffect(state.hasError) {
         if (state.hasError) snackbarHostState.showSnackbar("Network error. Showing cached data.")
@@ -106,14 +102,8 @@ fun MainScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                isRefreshing = true
-                scope.launch {
-                    viewModel.refresh(force = true)
-                    isRefreshing = false
-                }
-            },
+            isRefreshing = state.isLoading,
+            onRefresh = { viewModel.refresh(force = true) },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
