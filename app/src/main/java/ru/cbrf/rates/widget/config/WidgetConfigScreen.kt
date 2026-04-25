@@ -88,7 +88,7 @@ fun WidgetConfigScreen(
                             Text(text = item.flagEmoji, fontSize = 18.sp)
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                text = "${item.charCode} — ${item.nameRu}",
+                                text = "${item.charCode} — ${item.displayName}",
                                 modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodyMedium
                             )
@@ -152,7 +152,7 @@ fun WidgetConfigScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = item.nameRu,
+                                text = item.displayName,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )

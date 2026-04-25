@@ -25,7 +25,9 @@ data class CurrencyItem(
     val nameEn: String,
     val flagEmoji: String,
     val isSelected: Boolean
-)
+) {
+    val displayName: String get() = if (java.util.Locale.getDefault().language == "ru") nameRu else nameEn
+}
 
 data class WidgetConfigUiState(
     val items: List<CurrencyItem> = emptyList(),

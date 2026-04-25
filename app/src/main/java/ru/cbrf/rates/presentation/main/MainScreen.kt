@@ -270,7 +270,7 @@ private fun RateRow(
         Column(Modifier.weight(1f)) {
             Text(text = rate.charCode, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             Text(
-                text = rate.nameRu,
+                text = rate.displayName,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1

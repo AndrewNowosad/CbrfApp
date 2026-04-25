@@ -1,6 +1,7 @@
 package ru.cbrf.rates.domain.model
 
 import java.time.LocalDate
+import java.util.Locale
 
 data class RateEntry(
     val date: LocalDate,
@@ -24,6 +25,6 @@ data class CurrencyRateUiModel(
     val tomorrowValue: Double?,
     val previousValue: Double?
 ) {
-    /** positive = increase, negative = decrease, null = unknown */
     val trend: Int? get() = previousValue?.let { todayValue.compareTo(it) }
+    val displayName: String get() = if (Locale.getDefault().language == "ru") nameRu else nameEn
 }
