@@ -14,6 +14,7 @@ import ru.cbrf.rates.data.local.prefs.AppLanguage
 import ru.cbrf.rates.data.local.prefs.AppPreferences
 import ru.cbrf.rates.data.local.prefs.AppTheme
 import ru.cbrf.rates.data.local.prefs.UpdateInterval
+import ru.cbrf.rates.data.local.prefs.WidgetBgColorMode
 import ru.cbrf.rates.widget.WidgetUpdateHelper
 import ru.cbrf.rates.worker.RateUpdateWorker
 import javax.inject.Inject
@@ -25,7 +26,8 @@ data class SettingsUiState(
     val decimalPlaces: Int = 4,
     val invertColors: Boolean = false,
     val widgetBgAlpha: Float = 0.85f,
-    val widgetCornerRadius: Float = 16f
+    val widgetCornerRadius: Float = 16f,
+    val widgetBgColorMode: WidgetBgColorMode = WidgetBgColorMode.AUTO
 )
 
 @HiltViewModel
@@ -38,11 +40,16 @@ class SettingsViewModel @Inject constructor(
         combine(prefs.language, prefs.theme, prefs.updateInterval, prefs.decimalPlaces) { lang, theme, interval, decimals ->
             SettingsUiState(language = lang, theme = theme, updateInterval = interval, decimalPlaces = decimals)
         },
-        combine(prefs.invertColors, prefs.widgetBgAlpha, prefs.widgetCornerRadius) { invert, alpha, radius ->
-            Triple(invert, alpha, radius)
+        combine(prefs.invertColors, prefs.widgetBgAlpha, prefs.widgetCornerRadius, prefs.widgetBgColorMode) { invert, alpha, radius, colorMode ->
+            listOf(invert, alpha, radius, colorMode)
         }
-    ) { base, (invert, alpha, radius) ->
-        base.copy(invertColors = invert, widgetBgAlpha = alpha, widgetCornerRadius = radius)
+    ) { base, extras ->
+        base.copy(
+            invertColors = extras[0] as Boolean,
+            widgetBgAlpha = extras[1] as Float,
+            widgetCornerRadius = extras[2] as Float,
+            widgetBgColorMode = extras[3] as WidgetBgColorMode
+        )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
 
     fun setLanguage(language: AppLanguage) = viewModelScope.launch { prefs.setLanguage(language) }
@@ -70,6 +77,11 @@ class SettingsViewModel @Inject constructor(
 
     fun setWidgetCornerRadius(radius: Float) = viewModelScope.launch {
         prefs.setWidgetCornerRadius(radius)
+        updateAllWidgets()
+    }
+
+    fun setWidgetBgColorMode(mode: WidgetBgColorMode) = viewModelScope.launch {
+        prefs.setWidgetBgColorMode(mode)
         updateAllWidgets()
     }
 

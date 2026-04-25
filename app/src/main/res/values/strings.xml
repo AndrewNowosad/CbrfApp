@@ -39,6 +39,10 @@
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
     <string name="settings_widget_appearance">Widget appearance</string>
+    <string name="settings_widget_bg_color">Background color</string>
+    <string name="settings_widget_bg_color_auto">Auto (follows system theme)</string>
+    <string name="settings_widget_bg_color_light">Light</string>
+    <string name="settings_widget_bg_color_dark">Dark</string>
     <string name="settings_widget_bg_alpha">Background opacity</string>
     <string name="settings_widget_corner_radius">Corner radius</string>
 

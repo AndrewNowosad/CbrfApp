@@ -17,6 +17,7 @@ import javax.inject.Singleton
 
 enum class AppTheme { AUTO, LIGHT, DARK }
 enum class AppLanguage { AUTO, EN, RU }
+enum class WidgetBgColorMode { AUTO, LIGHT, DARK }
 enum class UpdateInterval(val hours: Long) {
     H1(1), H3(3), H6(6), H12(12), H24(24)
 }
@@ -37,6 +38,7 @@ class AppPreferences @Inject constructor(
         private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_WIDGET_BG_ALPHA = floatPreferencesKey("widget_bg_alpha")
         private val KEY_WIDGET_CORNER_RADIUS = floatPreferencesKey("widget_corner_radius")
+        private val KEY_WIDGET_BG_COLOR_MODE = stringPreferencesKey("widget_bg_color_mode")
 
         const val LANG_PREFS = "lang_prefs"
         const val KEY_LANGUAGE_SP = "language"
@@ -70,6 +72,11 @@ class AppPreferences @Inject constructor(
         prefs[KEY_WIDGET_CORNER_RADIUS] ?: 16f
     }
 
+    val widgetBgColorMode: Flow<WidgetBgColorMode> = store.data.map { prefs ->
+        runCatching { WidgetBgColorMode.valueOf(prefs[KEY_WIDGET_BG_COLOR_MODE] ?: "AUTO") }
+            .getOrDefault(WidgetBgColorMode.AUTO)
+    }
+
     suspend fun setTheme(theme: AppTheme) = store.edit { it[KEY_THEME] = theme.name }
 
     suspend fun setLanguage(language: AppLanguage) {
@@ -84,4 +91,5 @@ class AppPreferences @Inject constructor(
     suspend fun setInvertColors(invert: Boolean) = store.edit { it[KEY_INVERT_COLORS] = invert }
     suspend fun setWidgetBgAlpha(alpha: Float) = store.edit { it[KEY_WIDGET_BG_ALPHA] = alpha }
     suspend fun setWidgetCornerRadius(radius: Float) = store.edit { it[KEY_WIDGET_CORNER_RADIUS] = radius }
+    suspend fun setWidgetBgColorMode(mode: WidgetBgColorMode) = store.edit { it[KEY_WIDGET_BG_COLOR_MODE] = mode.name }
 }

@@ -41,6 +41,7 @@ import ru.cbrf.rates.R
 import ru.cbrf.rates.data.local.prefs.AppLanguage
 import ru.cbrf.rates.data.local.prefs.AppTheme
 import ru.cbrf.rates.data.local.prefs.UpdateInterval
+import ru.cbrf.rates.data.local.prefs.WidgetBgColorMode
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -158,6 +159,26 @@ fun SettingsScreen(
 
             // Widget appearance
             SectionLabel(stringResource(R.string.settings_widget_appearance))
+            Spacer(Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(R.string.settings_widget_bg_color),
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(Modifier.height(4.dp))
+            EnumDropdown(
+                options = WidgetBgColorMode.entries,
+                selected = state.widgetBgColorMode,
+                label = { mode ->
+                    when (mode) {
+                        WidgetBgColorMode.AUTO -> stringResource(R.string.settings_widget_bg_color_auto)
+                        WidgetBgColorMode.LIGHT -> stringResource(R.string.settings_widget_bg_color_light)
+                        WidgetBgColorMode.DARK -> stringResource(R.string.settings_widget_bg_color_dark)
+                    }
+                },
+                onSelect = viewModel::setWidgetBgColorMode
+            )
+
             Spacer(Modifier.height(8.dp))
 
             var localAlpha by remember { mutableStateOf(state.widgetBgAlpha) }

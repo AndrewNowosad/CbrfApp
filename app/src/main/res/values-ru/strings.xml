@@ -36,6 +36,10 @@
     <string name="settings_theme_light">Светлая</string>
     <string name="settings_theme_dark">Тёмная</string>
     <string name="settings_widget_appearance">Внешний вид виджетов</string>
+    <string name="settings_widget_bg_color">Цвет подложки</string>
+    <string name="settings_widget_bg_color_auto">Авто (по теме системы)</string>
+    <string name="settings_widget_bg_color_light">Светлая</string>
+    <string name="settings_widget_bg_color_dark">Тёмная</string>
     <string name="settings_widget_bg_alpha">Непрозрачность подложки</string>
     <string name="settings_widget_corner_radius">Радиус скругления</string>
 

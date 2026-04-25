@@ -48,13 +48,14 @@ abstract class BaseRateWidget : GlanceAppWidget() {
         val today = LocalDate.now()
         Log.d("CbrfWidget", "loadData START appWidgetId=$appWidgetId glanceId=$glanceId")
 
-        val (currencies, decimalPlaces, invertColors, bgAlpha, cornerRadius) = coroutineScope {
+        val (currencies, decimalPlaces, invertColors, bgAlpha, cornerRadius, bgColorMode) = coroutineScope {
             val c = async { widgetPrefs.getCurrenciesOnce(appWidgetId).take(maxCurrencies) }
             val d = async { appPrefs.decimalPlaces.first() }
             val i = async { appPrefs.invertColors.first() }
             val a = async { appPrefs.widgetBgAlpha.first() }
             val r = async { appPrefs.widgetCornerRadius.first() }
-            PrefsSnapshot(c.await(), d.await(), i.await(), a.await(), r.await())
+            val m = async { appPrefs.widgetBgColorMode.first() }
+            PrefsSnapshot(c.await(), d.await(), i.await(), a.await(), r.await(), m.await())
         }
         Log.d("CbrfWidget", "loadData currencies=$currencies bgAlpha=$bgAlpha")
 
@@ -92,7 +93,8 @@ abstract class BaseRateWidget : GlanceAppWidget() {
             decimalPlaces = decimalPlaces,
             invertColors = invertColors,
             bgAlpha = bgAlpha,
-            cornerRadius = cornerRadius
+            cornerRadius = cornerRadius,
+            bgColorMode = bgColorMode
         )
     }
 
@@ -110,7 +112,9 @@ abstract class BaseRateWidget : GlanceAppWidget() {
 fun WidgetCurrencyRow(
     rate: CurrencyRateUiModel,
     decimalPlaces: Int,
-    invertColors: Boolean
+    invertColors: Boolean,
+    contentColor: Color = Color(0xFF212121),
+    secondaryColor: Color = Color(0xFF757575)
 ) {
     val trend = rate.trend
     val trendColor: Color? = when {
@@ -118,7 +122,7 @@ fun WidgetCurrencyRow(
         trend > 0 -> if (invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
         else -> if (invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
     }
-    val valueColor = trendColor ?: Color(0xFF212121)
+    val valueColor = trendColor ?: contentColor
 
     Row(
         modifier = GlanceModifier.fillMaxWidth().padding(vertical = 5.dp),
@@ -126,7 +130,8 @@ fun WidgetCurrencyRow(
     ) {
         Text(
             text = "${rate.flagEmoji} ${rate.charCode}",
-            style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium),
+            style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium,
+                color = ColorProvider(contentColor)),
             modifier = GlanceModifier.defaultWeight()
         )
         androidx.glance.layout.Column(horizontalAlignment = Alignment.End) {
@@ -143,7 +148,7 @@ fun WidgetCurrencyRow(
                 val tomorrowColor = when {
                     tomorrowTrend > 0 -> if (invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
                     tomorrowTrend < 0 -> if (invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
-                    else -> Color(0xFF757575)
+                    else -> secondaryColor
                 }
                 Text(
                     text = "→ ${rate.tomorrowValue.formatRate(decimalPlaces)}",

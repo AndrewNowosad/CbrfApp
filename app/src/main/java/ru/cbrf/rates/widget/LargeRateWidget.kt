@@ -3,12 +3,14 @@ package ru.cbrf.rates.widget
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionRunCallback
@@ -29,6 +31,7 @@ import androidx.glance.layout.padding
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import ru.cbrf.rates.data.local.prefs.WidgetBgColorMode
 import ru.cbrf.rates.presentation.MainActivity
 import ru.cbrf.rates.widget.config.WidgetConfigActivity
 
@@ -46,7 +49,21 @@ class LargeRateWidget : BaseRateWidget() {
         provideContent {
             val prefs = currentState<Preferences>()
             val displayData = prefs.readWidgetData() ?: data
-            val bgColor = Color.White.copy(alpha = displayData.bgAlpha)
+            val isDark = (LocalContext.current.resources.configuration.uiMode
+                    and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val bgBase = when (displayData.bgColorMode) {
+                WidgetBgColorMode.LIGHT -> Color.White
+                WidgetBgColorMode.DARK -> Color(0xFF1C1B1F)
+                WidgetBgColorMode.AUTO -> if (isDark) Color(0xFF1C1B1F) else Color.White
+            }
+            val bgColor = bgBase.copy(alpha = displayData.bgAlpha)
+            val isDarkBg = when (displayData.bgColorMode) {
+                WidgetBgColorMode.DARK -> true
+                WidgetBgColorMode.LIGHT -> false
+                WidgetBgColorMode.AUTO -> isDark
+            }
+            val contentColor = if (isDarkBg) Color(0xFFE1E1E1) else Color(0xFF212121)
+            val secondaryColor = if (isDarkBg) Color(0xFF9E9E9E) else Color(0xFF757575)
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
@@ -62,20 +79,17 @@ class LargeRateWidget : BaseRateWidget() {
                     ) {
                         Text(
                             text = displayData.displayDate,
-                            style = TextStyle(
-                                fontSize = 10.sp,
-                                color = ColorProvider(Color(0xFF757575))
-                            ),
+                            style = TextStyle(fontSize = 10.sp, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.defaultWeight()
                         )
                         Text(
                             text = "↻",
-                            style = TextStyle(fontSize = 14.sp),
+                            style = TextStyle(fontSize = 14.sp, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.clickable(actionRunCallback<WidgetRefreshCallback>())
                         )
                         Text(
                             text = " ⚙",
-                            style = TextStyle(fontSize = 14.sp),
+                            style = TextStyle(fontSize = 14.sp, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.clickable(actionStartActivity(configIntent))
                         )
                     }
@@ -94,7 +108,9 @@ class LargeRateWidget : BaseRateWidget() {
                                     WidgetCurrencyRow(
                                         rate = rate,
                                         decimalPlaces = displayData.decimalPlaces,
-                                        invertColors = displayData.invertColors
+                                        invertColors = displayData.invertColors,
+                                        contentColor = contentColor,
+                                        secondaryColor = secondaryColor
                                     )
                                 }
                             }
@@ -108,10 +124,7 @@ class LargeRateWidget : BaseRateWidget() {
                         ) {
                             Text(
                                 "Tap ⚙ to configure",
-                                style = TextStyle(
-                                    fontSize = 11.sp,
-                                    color = ColorProvider(Color(0xFF757575))
-                                )
+                                style = TextStyle(fontSize = 11.sp, color = ColorProvider(secondaryColor))
                             )
                         }
                     }

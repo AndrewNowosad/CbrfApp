@@ -7,9 +7,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
+import android.content.res.Configuration
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.LocalContext
 import androidx.glance.LocalSize
+import ru.cbrf.rates.data.local.prefs.WidgetBgColorMode
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionRunCallback
@@ -48,7 +51,21 @@ class SmallRateWidget : BaseRateWidget() {
         provideContent {
             val prefs = currentState<Preferences>()
             val displayData = prefs.readWidgetData() ?: data
-            val bgColor = Color.White.copy(alpha = displayData.bgAlpha)
+            val isDark = (LocalContext.current.resources.configuration.uiMode
+                    and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
+            val bgBase = when (displayData.bgColorMode) {
+                WidgetBgColorMode.LIGHT -> Color.White
+                WidgetBgColorMode.DARK -> Color(0xFF1C1B1F)
+                WidgetBgColorMode.AUTO -> if (isDark) Color(0xFF1C1B1F) else Color.White
+            }
+            val bgColor = bgBase.copy(alpha = displayData.bgAlpha)
+            val isDarkBg = when (displayData.bgColorMode) {
+                WidgetBgColorMode.DARK -> true
+                WidgetBgColorMode.LIGHT -> false
+                WidgetBgColorMode.AUTO -> isDark
+            }
+            val contentColor = if (isDarkBg) Color(0xFFE1E1E1) else Color(0xFF212121)
+            val secondaryColor = if (isDarkBg) Color(0xFF9E9E9E) else Color(0xFF757575)
 
             val size = LocalSize.current
             val minDim = minOf(size.width, size.height)
@@ -79,17 +96,17 @@ class SmallRateWidget : BaseRateWidget() {
                     ) {
                         Text(
                             text = displayData.displayDate,
-                            style = TextStyle(fontSize = headerSize, color = ColorProvider(Color(0xFF757575))),
+                            style = TextStyle(fontSize = headerSize, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.defaultWeight()
                         )
                         Text(
                             text = "↻",
-                            style = TextStyle(fontSize = iconSize),
+                            style = TextStyle(fontSize = iconSize, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.clickable(actionRunCallback<WidgetRefreshCallback>())
                         )
                         Text(
                             text = " ⚙",
-                            style = TextStyle(fontSize = iconSize),
+                            style = TextStyle(fontSize = iconSize, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.clickable(actionStartActivity(configIntent))
                         )
                     }
@@ -102,7 +119,7 @@ class SmallRateWidget : BaseRateWidget() {
                             trend > 0 -> if (displayData.invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
                             else -> if (displayData.invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
                         }
-                        val valueColor = trendColor ?: Color(0xFF212121)
+                        val valueColor = trendColor ?: contentColor
 
                         Spacer(GlanceModifier.defaultWeight())
                         Column(
@@ -116,7 +133,7 @@ class SmallRateWidget : BaseRateWidget() {
                                 style = TextStyle(
                                     fontSize = codeTextSize,
                                     fontWeight = FontWeight.Medium,
-                                    color = ColorProvider(Color(0xFF424242))
+                                    color = ColorProvider(contentColor)
                                 )
                             )
                             Text(
@@ -132,7 +149,7 @@ class SmallRateWidget : BaseRateWidget() {
                                 val tomorrowColor = when {
                                     tomorrowTrend > 0 -> if (displayData.invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
                                     tomorrowTrend < 0 -> if (displayData.invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
-                                    else -> Color(0xFF757575)
+                                    else -> secondaryColor
                                 }
                                 Text(
                                     text = "→ ${rate.tomorrowValue.formatRate(displayData.decimalPlaces)}",
@@ -150,7 +167,7 @@ class SmallRateWidget : BaseRateWidget() {
                         ) {
                             Text(
                                 text = "⚙",
-                                style = TextStyle(fontSize = iconSize, color = ColorProvider(Color(0xFF757575)))
+                                style = TextStyle(fontSize = iconSize, color = ColorProvider(secondaryColor))
                             )
                         }
                     }

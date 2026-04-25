@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import ru.cbrf.rates.data.local.prefs.WidgetBgColorMode
 import ru.cbrf.rates.domain.model.CurrencyRateUiModel
 
 data class WidgetDisplayData(
@@ -15,7 +16,8 @@ data class WidgetDisplayData(
     val decimalPlaces: Int,
     val invertColors: Boolean,
     val bgAlpha: Float,
-    val cornerRadius: Float
+    val cornerRadius: Float,
+    val bgColorMode: WidgetBgColorMode
 )
 
 internal data class PrefsSnapshot(
@@ -23,7 +25,8 @@ internal data class PrefsSnapshot(
     val decimalPlaces: Int,
     val invertColors: Boolean,
     val bgAlpha: Float,
-    val cornerRadius: Float
+    val cornerRadius: Float,
+    val bgColorMode: WidgetBgColorMode
 )
 
 internal object WidgetStateKeys {
@@ -33,6 +36,7 @@ internal object WidgetStateKeys {
     val INVERT_COLORS = booleanPreferencesKey("invert")
     val BG_ALPHA = floatPreferencesKey("bgAlpha")
     val CORNER_RADIUS = floatPreferencesKey("cornerRadius")
+    val BG_COLOR_MODE = stringPreferencesKey("bgColorMode")
     val CURRENCIES_DATA = stringPreferencesKey("currencies")
 }
 
@@ -43,6 +47,7 @@ internal fun MutablePreferences.writeWidgetData(data: WidgetDisplayData) {
     this[WidgetStateKeys.INVERT_COLORS] = data.invertColors
     this[WidgetStateKeys.BG_ALPHA] = data.bgAlpha
     this[WidgetStateKeys.CORNER_RADIUS] = data.cornerRadius
+    this[WidgetStateKeys.BG_COLOR_MODE] = data.bgColorMode.name
     this[WidgetStateKeys.CURRENCIES_DATA] = data.currencies.encodeCurrencies()
 }
 
@@ -55,7 +60,10 @@ internal fun Preferences.readWidgetData(): WidgetDisplayData? {
         decimalPlaces = this[WidgetStateKeys.DECIMAL_PLACES] ?: 4,
         invertColors = this[WidgetStateKeys.INVERT_COLORS] ?: false,
         bgAlpha = this[WidgetStateKeys.BG_ALPHA] ?: 0.85f,
-        cornerRadius = this[WidgetStateKeys.CORNER_RADIUS] ?: 16f
+        cornerRadius = this[WidgetStateKeys.CORNER_RADIUS] ?: 16f,
+        bgColorMode = runCatching {
+            WidgetBgColorMode.valueOf(this[WidgetStateKeys.BG_COLOR_MODE] ?: "AUTO")
+        }.getOrDefault(WidgetBgColorMode.AUTO)
     )
 }
 
