@@ -44,6 +44,21 @@ object CurrencyMeta {
         "VND" to Info("🇻🇳", "Vietnamese Dong"),
         "AED" to Info("🇦🇪", "UAE Dirham"),
         "THB" to Info("🇹🇭", "Thai Baht"),
+        "BDT" to Info("🇧🇩", "Bangladeshi Taka"),
+        "BHD" to Info("🇧🇭", "Bahraini Dinar"),
+        "BOB" to Info("🇧🇴", "Bolivian Boliviano"),
+        "CUP" to Info("🇨🇺", "Cuban Peso"),
+        "DZD" to Info("🇩🇿", "Algerian Dinar"),
+        "ETB" to Info("🇪🇹", "Ethiopian Birr"),
+        "GEL" to Info("🇬🇪", "Georgian Lari"),
+        "IRR" to Info("🇮🇷", "Iranian Rial"),
+        "MMK" to Info("🇲🇲", "Myanmar Kyat"),
+        "MNT" to Info("🇲🇳", "Mongolian Tugrik"),
+        "NGN" to Info("🇳🇬", "Nigerian Naira"),
+        "NZD" to Info("🇳🇿", "New Zealand Dollar"),
+        "OMR" to Info("🇴🇲", "Omani Rial"),
+        "RSD" to Info("🇷🇸", "Serbian Dinar"),
+        "SAR" to Info("🇸🇦", "Saudi Riyal"),
     )
 
     fun flagFor(charCode: String) = data[charCode]?.flagEmoji ?: "💱"
