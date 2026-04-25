@@ -15,7 +15,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
-enum class AppTheme { LIGHT, DARK, AUTO }
+enum class AppTheme { AUTO, LIGHT, DARK }
+enum class AppLanguage { AUTO, EN, RU }
 enum class UpdateInterval(val hours: Long) {
     H1(1), H3(3), H6(6), H12(12), H24(24)
 }
@@ -33,12 +34,20 @@ class AppPreferences @Inject constructor(
         private val KEY_INTERVAL = stringPreferencesKey("update_interval")
         private val KEY_DECIMALS = intPreferencesKey("decimal_places")
         private val KEY_INVERT_COLORS = booleanPreferencesKey("invert_colors")
+        private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_WIDGET_BG_ALPHA = floatPreferencesKey("widget_bg_alpha")
         private val KEY_WIDGET_CORNER_RADIUS = floatPreferencesKey("widget_corner_radius")
+
+        const val LANG_PREFS = "lang_prefs"
+        const val KEY_LANGUAGE_SP = "language"
     }
 
     val theme: Flow<AppTheme> = store.data.map { prefs ->
         runCatching { AppTheme.valueOf(prefs[KEY_THEME] ?: "AUTO") }.getOrDefault(AppTheme.AUTO)
+    }
+
+    val language: Flow<AppLanguage> = store.data.map { prefs ->
+        runCatching { AppLanguage.valueOf(prefs[KEY_LANGUAGE] ?: "AUTO") }.getOrDefault(AppLanguage.AUTO)
     }
 
     val updateInterval: Flow<UpdateInterval> = store.data.map { prefs ->
@@ -62,6 +71,14 @@ class AppPreferences @Inject constructor(
     }
 
     suspend fun setTheme(theme: AppTheme) = store.edit { it[KEY_THEME] = theme.name }
+
+    suspend fun setLanguage(language: AppLanguage) {
+        // SharedPreferences for synchronous read in attachBaseContext
+        context.getSharedPreferences(LANG_PREFS, Context.MODE_PRIVATE)
+            .edit().putString(KEY_LANGUAGE_SP, language.name).apply()
+        store.edit { it[KEY_LANGUAGE] = language.name }
+    }
+
     suspend fun setUpdateInterval(interval: UpdateInterval) = store.edit { it[KEY_INTERVAL] = interval.name }
     suspend fun setDecimalPlaces(places: Int) = store.edit { it[KEY_DECIMALS] = places }
     suspend fun setInvertColors(invert: Boolean) = store.edit { it[KEY_INVERT_COLORS] = invert }

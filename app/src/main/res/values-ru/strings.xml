@@ -27,10 +27,14 @@
     <string name="settings_decimals_4">4 знака</string>
     <string name="settings_color_inversion">Инверсия цветов</string>
     <string name="settings_color_inversion_desc">Зелёный = падение, красный = рост</string>
+    <string name="settings_language">Язык</string>
+    <string name="settings_language_auto">Авто (системный)</string>
+    <string name="settings_language_en">Английский</string>
+    <string name="settings_language_ru">Русский</string>
     <string name="settings_theme">Тема</string>
+    <string name="settings_theme_auto">Авто (системная)</string>
     <string name="settings_theme_light">Светлая</string>
     <string name="settings_theme_dark">Тёмная</string>
-    <string name="settings_theme_auto">Авто (системная)</string>
     <string name="settings_widget_appearance">Внешний вид виджетов</string>
     <string name="settings_widget_bg_alpha">Прозрачность подложки</string>
     <string name="settings_widget_corner_radius">Радиус скругления</string>

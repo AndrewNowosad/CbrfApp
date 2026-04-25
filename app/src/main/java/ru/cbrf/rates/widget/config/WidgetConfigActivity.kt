@@ -1,6 +1,8 @@
 package ru.cbrf.rates.widget.config
 
 import android.appwidget.AppWidgetManager
+import android.content.Context
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -12,6 +14,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import ru.cbrf.rates.data.local.prefs.AppPreferences
 import ru.cbrf.rates.data.local.prefs.AppTheme
 import ru.cbrf.rates.presentation.theme.CbrfTheme
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -24,6 +27,24 @@ class WidgetConfigActivity : ComponentActivity() {
 
     companion object {
         val PARAM_WIDGET_ID = androidx.glance.action.ActionParameters.Key<Int>("widget_id")
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        val lang = newBase.getSharedPreferences(AppPreferences.LANG_PREFS, Context.MODE_PRIVATE)
+            .getString(AppPreferences.KEY_LANGUAGE_SP, "AUTO") ?: "AUTO"
+        val locale: Locale? = when (lang) {
+            "RU" -> Locale("ru")
+            "EN" -> Locale("en")
+            else -> null
+        }
+        if (locale != null) {
+            Locale.setDefault(locale)
+            val config = Configuration(newBase.resources.configuration)
+            config.setLocale(locale)
+            super.attachBaseContext(newBase.createConfigurationContext(config))
+        } else {
+            super.attachBaseContext(newBase)
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,7 +67,8 @@ class WidgetConfigActivity : ComponentActivity() {
 
         viewModel.init(effectiveId)
 
-        // Default result = CANCELED (user might back out)
+        // Default result = CANCELED
+
         setResult(RESULT_CANCELED, android.content.Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, effectiveId))
 
         enableEdgeToEdge()

@@ -30,10 +30,14 @@
     <string name="settings_decimals_4">4 decimal places</string>
     <string name="settings_color_inversion">Invert colors</string>
     <string name="settings_color_inversion_desc">Green = decrease, red = increase</string>
+    <string name="settings_language">Language</string>
+    <string name="settings_language_auto">Auto (system)</string>
+    <string name="settings_language_en">English</string>
+    <string name="settings_language_ru">Russian</string>
     <string name="settings_theme">Theme</string>
+    <string name="settings_theme_auto">Auto (system)</string>
     <string name="settings_theme_light">Light</string>
     <string name="settings_theme_dark">Dark</string>
-    <string name="settings_theme_auto">Auto (system)</string>
     <string name="settings_widget_appearance">Widget appearance</string>
     <string name="settings_widget_bg_alpha">Background opacity</string>
     <string name="settings_widget_corner_radius">Corner radius</string>

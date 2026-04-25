@@ -37,6 +37,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import ru.cbrf.rates.R
+import ru.cbrf.rates.data.local.prefs.AppLanguage
 import ru.cbrf.rates.data.local.prefs.AppTheme
 import ru.cbrf.rates.data.local.prefs.UpdateInterval
 import kotlin.math.roundToInt
@@ -68,6 +69,23 @@ fun SettingsScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
+            // Language
+            SectionLabel(stringResource(R.string.settings_language))
+            EnumDropdown(
+                options = AppLanguage.entries,
+                selected = state.language,
+                label = { lang ->
+                    when (lang) {
+                        AppLanguage.AUTO -> stringResource(R.string.settings_language_auto)
+                        AppLanguage.EN -> stringResource(R.string.settings_language_en)
+                        AppLanguage.RU -> stringResource(R.string.settings_language_ru)
+                    }
+                },
+                onSelect = viewModel::setLanguage
+            )
+
+            Spacer(Modifier.height(16.dp))
+
             // Theme
             SectionLabel(stringResource(R.string.settings_theme))
             EnumDropdown(
@@ -75,9 +93,9 @@ fun SettingsScreen(
                 selected = state.theme,
                 label = { theme ->
                     when (theme) {
+                        AppTheme.AUTO -> stringResource(R.string.settings_theme_auto)
                         AppTheme.LIGHT -> stringResource(R.string.settings_theme_light)
                         AppTheme.DARK -> stringResource(R.string.settings_theme_dark)
-                        AppTheme.AUTO -> stringResource(R.string.settings_theme_auto)
                     }
                 },
                 onSelect = viewModel::setTheme
