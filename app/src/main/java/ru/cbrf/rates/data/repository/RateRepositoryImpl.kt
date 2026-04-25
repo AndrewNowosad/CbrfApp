@@ -7,6 +7,7 @@ import ru.cbrf.rates.data.local.db.RateEntity
 import ru.cbrf.rates.data.remote.CbrfApi
 import ru.cbrf.rates.data.remote.CbrfXmlParser
 import ru.cbrf.rates.data.remote.CurrencyValParser
+import ru.cbrf.rates.data.remote.CurrencyXmlDto
 import ru.cbrf.rates.domain.model.CurrencyMeta
 import ru.cbrf.rates.domain.model.RateEntry
 import ru.cbrf.rates.domain.repository.RateRepository
@@ -57,23 +58,33 @@ class RateRepositoryImpl @Inject constructor(
             val dateParam = date.format(cbrfDateFormatter)
             val responseBody = api.getDailyRates(dateParam)
             val xmlString = responseBody.bytes().toString(Charset.forName("windows-1251"))
-            val (publishDate, dtos) = CbrfXmlParser.parse(xmlString)
+            val (rawPublishDate, dtos) = CbrfXmlParser.parse(xmlString)
+            if (dtos.isEmpty() || rawPublishDate == null) return@runCatching false
+            val publishDate: LocalDate = rawPublishDate
 
-            if (dtos.isEmpty() || publishDate == null) return@runCatching false
-            if (publishDate != date) return@runCatching false
-
-            val entities = dtos.map { dto ->
-                RateEntity(
-                    date = date.format(isoFormatter),
-                    charCode = dto.charCode,
-                    cbrId = dto.cbrId,
-                    numCode = dto.numCode,
-                    nominal = dto.nominal,
-                    nameRu = dto.nameRu,
-                    nameEn = CurrencyMeta.nameEnFor(dto.charCode, dto.nameRu),
-                    value = dto.value
-                )
+            if (publishDate != date) {
+                // CBR returned an earlier date (weekend/holiday gap).
+                // For past dates: cache all dates from publishDate through requestedDate so
+                // subsequent requests for any date in the gap skip the network.
+                if (date < LocalDate.now() && publishDate < date) {
+                    val charCodes = dtos.map { it.charCode }.toSet()
+                    val idToCharCode = dtos.associate { it.cbrId to it.charCode }
+                    var d = publishDate
+                    while (d <= date) {
+                        val dStr = d.format(isoFormatter)
+                        if (dao.getRatesForDate(dStr).isEmpty()) {
+                            dao.insertRates(buildEntities(dtos, dStr))
+                        }
+                        d = d.plusDays(1)
+                    }
+                    ensureCurrencyNamesLoaded(charCodes, idToCharCode)
+                    return@runCatching true
+                }
+                // Today's rates not yet published — nothing to cache.
+                return@runCatching false
             }
+
+            val entities = buildEntities(dtos, date.format(isoFormatter))
             dao.insertRates(entities)
 
             val cutoff = date.minusDays(60).format(isoFormatter)
@@ -86,6 +97,20 @@ class RateRepositoryImpl @Inject constructor(
             true
         }
     }
+
+    private fun buildEntities(dtos: List<CurrencyXmlDto>, dateStr: String): List<RateEntity> =
+        dtos.map { dto ->
+            RateEntity(
+                date = dateStr,
+                charCode = dto.charCode,
+                cbrId = dto.cbrId,
+                numCode = dto.numCode,
+                nominal = dto.nominal,
+                nameRu = dto.nameRu,
+                nameEn = CurrencyMeta.nameEnFor(dto.charCode, dto.nameRu),
+                value = dto.value
+            )
+        }
 
     private suspend fun ensureCurrencyNamesLoaded(
         charCodes: Set<String>,

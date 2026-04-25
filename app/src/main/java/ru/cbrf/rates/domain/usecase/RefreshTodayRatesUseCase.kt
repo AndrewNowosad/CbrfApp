@@ -4,14 +4,11 @@ import ru.cbrf.rates.domain.repository.RateRepository
 import java.time.LocalDate
 import javax.inject.Inject
 
+private const val MAX_RATE_LOOKBACK_DAYS = 7
+
 class RefreshTodayRatesUseCase @Inject constructor(
     private val repository: RateRepository
 ) {
-    /**
-     * Fetches today's rates and tomorrow's rates (if not yet cached).
-     * Handles weekend logic: walks back up to 7 days to find the latest published rate.
-     * Returns the effective display date (may be in the past during weekends).
-     */
     suspend operator fun invoke(force: Boolean = false): Result<LocalDate> {
         val today = LocalDate.now()
 
@@ -26,7 +23,7 @@ class RefreshTodayRatesUseCase @Inject constructor(
         val effectiveDate = if (todayResult.getOrNull() == false) {
             var candidate = today.minusDays(1)
             var found = false
-            repeat(7) {
+            repeat(MAX_RATE_LOOKBACK_DAYS) {
                 if (!found) {
                     val r = repository.fetchRatesIfNeeded(candidate)
                     if (r.getOrNull() == true) found = true

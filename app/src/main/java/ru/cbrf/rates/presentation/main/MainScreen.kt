@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -117,7 +118,7 @@ fun MainScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     FilterChip(
-                        selected = state.displayDate == state.effectiveDate,
+                        selected = state.displayDate == LocalDate.now(),
                         onClick = { viewModel.jumpToToday() },
                         label = { Text(stringResource(R.string.today)) }
                     )
@@ -185,11 +186,16 @@ fun MainScreen(
     }
 
     if (showDatePicker) {
+        val tomorrow = LocalDate.now().plusDays(1)
+        val tomorrowMillis = tomorrow.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = state.displayDate
                 .atStartOfDay(ZoneId.systemDefault())
                 .toInstant()
-                .toEpochMilli()
+                .toEpochMilli(),
+            selectableDates = object : SelectableDates {
+                override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= tomorrowMillis
+            }
         )
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },

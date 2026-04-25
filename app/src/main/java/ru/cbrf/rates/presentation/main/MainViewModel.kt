@@ -91,12 +91,14 @@ class MainViewModel @Inject constructor(
     }
 
     fun setDisplayDate(date: LocalDate) {
-        _displayDate.value = date
+        val clamped = minOf(date, LocalDate.now().plusDays(1))
+        _displayDate.value = clamped
         viewModelScope.launch {
             _isLoading.value = true
             _hasError.value = false
-            repository.fetchRatesIfNeeded(date).onFailure { _hasError.value = true }
-            loadRatesForDate(date)
+            repository.fetchRatesIfNeeded(clamped).onFailure { _hasError.value = true }
+            val displayEffective = repository.getLatestAvailableDate(clamped) ?: clamped
+            loadRatesForDate(displayEffective)
             _isLoading.value = false
         }
     }
@@ -106,7 +108,8 @@ class MainViewModel @Inject constructor(
     }
 
     fun jumpToToday() {
-        setDisplayDate(_effectiveDate.value)
+        _displayDate.value = LocalDate.now()
+        refresh(force = false)
     }
 
     fun jumpToTomorrow() {
