@@ -5,6 +5,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import ru.cbrf.rates.data.local.prefs.AppPreferences
 import ru.cbrf.rates.data.local.prefs.WidgetPreferences
+import ru.cbrf.rates.domain.repository.RateRepository
 import ru.cbrf.rates.domain.usecase.GetRatesForDisplayUseCase
 import ru.cbrf.rates.domain.usecase.RefreshTodayRatesUseCase
 
@@ -15,4 +16,5 @@ interface WidgetEntryPoint {
     fun refreshTodayRates(): RefreshTodayRatesUseCase
     fun widgetPreferences(): WidgetPreferences
     fun appPreferences(): AppPreferences
+    fun rateRepository(): RateRepository
 }

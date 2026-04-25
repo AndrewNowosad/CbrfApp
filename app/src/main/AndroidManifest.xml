@@ -26,6 +26,7 @@
         <activity
             android:name=".widget.config.WidgetConfigActivity"
             android:exported="true"
+            android:taskAffinity=""
             android:theme="@style/Theme.CbrfApp">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />

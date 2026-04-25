@@ -26,6 +26,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -159,26 +160,32 @@ fun SettingsScreen(
             SectionLabel(stringResource(R.string.settings_widget_appearance))
             Spacer(Modifier.height(8.dp))
 
+            var localAlpha by remember { mutableStateOf(state.widgetBgAlpha) }
+            LaunchedEffect(state.widgetBgAlpha) { localAlpha = state.widgetBgAlpha }
             Text(
-                text = "${stringResource(R.string.settings_widget_bg_alpha)}: ${(state.widgetBgAlpha * 100).roundToInt()}%",
+                text = "${stringResource(R.string.settings_widget_bg_alpha)}: ${(localAlpha * 100).roundToInt()}%",
                 style = MaterialTheme.typography.bodyMedium
             )
             Slider(
-                value = state.widgetBgAlpha,
-                onValueChange = viewModel::setWidgetBgAlpha,
+                value = localAlpha,
+                onValueChange = { localAlpha = it },
+                onValueChangeFinished = { viewModel.setWidgetBgAlpha(localAlpha) },
                 valueRange = 0f..1f,
                 modifier = Modifier.fillMaxWidth()
             )
 
             Spacer(Modifier.height(8.dp))
 
+            var localRadius by remember { mutableStateOf(state.widgetCornerRadius) }
+            LaunchedEffect(state.widgetCornerRadius) { localRadius = state.widgetCornerRadius }
             Text(
-                text = "${stringResource(R.string.settings_widget_corner_radius)}: ${state.widgetCornerRadius.roundToInt()}dp",
+                text = "${stringResource(R.string.settings_widget_corner_radius)}: ${localRadius.roundToInt()}dp",
                 style = MaterialTheme.typography.bodyMedium
             )
             Slider(
-                value = state.widgetCornerRadius,
-                onValueChange = viewModel::setWidgetCornerRadius,
+                value = localRadius,
+                onValueChange = { localRadius = it },
+                onValueChangeFinished = { viewModel.setWidgetCornerRadius(localRadius) },
                 valueRange = 0f..24f,
                 steps = 23,
                 modifier = Modifier.fillMaxWidth()

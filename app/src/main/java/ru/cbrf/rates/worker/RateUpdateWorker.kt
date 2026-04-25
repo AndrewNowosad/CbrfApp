@@ -1,8 +1,6 @@
 package ru.cbrf.rates.worker
 
 import android.content.Context
-import androidx.glance.appwidget.GlanceAppWidgetManager
-import androidx.glance.appwidget.updateAll
 import androidx.hilt.work.HiltWorker
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -15,9 +13,7 @@ import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import ru.cbrf.rates.data.local.prefs.UpdateInterval
 import ru.cbrf.rates.domain.usecase.RefreshTodayRatesUseCase
-import ru.cbrf.rates.widget.LargeRateWidget
-import ru.cbrf.rates.widget.MediumRateWidget
-import ru.cbrf.rates.widget.SmallRateWidget
+import ru.cbrf.rates.widget.WidgetUpdateHelper
 import java.util.concurrent.TimeUnit
 
 @HiltWorker
@@ -29,18 +25,12 @@ class RateUpdateWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val result = refreshRates(force = false)
-
-        // Update all widgets regardless of success (they'll show cached data)
         updateAllWidgets()
-
         return if (result.isSuccess) Result.success() else Result.retry()
     }
 
     private suspend fun updateAllWidgets() {
-        val manager = GlanceAppWidgetManager(applicationContext)
-        runCatching { SmallRateWidget().updateAll(applicationContext) }
-        runCatching { MediumRateWidget().updateAll(applicationContext) }
-        runCatching { LargeRateWidget().updateAll(applicationContext) }
+        WidgetUpdateHelper.requestUpdate(applicationContext)
     }
 
     companion object {

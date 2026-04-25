@@ -4,19 +4,28 @@ import android.content.Context
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.SizeMode
+import androidx.glance.appwidget.state.updateAppWidgetState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
+import androidx.glance.state.GlanceStateDefinition
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import android.util.Log
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.async
+import ru.cbrf.rates.domain.repository.RateRepository
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import ru.cbrf.rates.domain.model.CurrencyRateUiModel
 import java.time.LocalDate
@@ -25,30 +34,56 @@ import java.time.format.FormatStyle
 
 abstract class BaseRateWidget : GlanceAppWidget() {
 
-    protected suspend fun loadData(context: Context, glanceId: GlanceId, maxCurrencies: Int): WidgetDisplayData {
+    override val sizeMode = SizeMode.Exact
+    override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
+
+    internal suspend fun loadData(context: Context, glanceId: GlanceId, maxCurrencies: Int): WidgetDisplayData {
         val ep = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
         val widgetPrefs = ep.widgetPreferences()
         val appPrefs = ep.appPreferences()
         val getRates = ep.getRatesForDisplay()
 
+        val repository = ep.rateRepository()
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
-
-        val currencies = widgetPrefs.getCurrenciesOnce(appWidgetId).take(maxCurrencies)
-        val decimalPlaces = appPrefs.decimalPlaces.first()
-        val invertColors = appPrefs.invertColors.first()
-        val bgAlpha = appPrefs.widgetBgAlpha.first()
-        val cornerRadius = appPrefs.widgetCornerRadius.first()
-
         val today = LocalDate.now()
+        Log.d("CbrfWidget", "loadData START appWidgetId=$appWidgetId glanceId=$glanceId")
+
+        val (currencies, decimalPlaces, invertColors, bgAlpha, cornerRadius) = coroutineScope {
+            val c = async { widgetPrefs.getCurrenciesOnce(appWidgetId).take(maxCurrencies) }
+            val d = async { appPrefs.decimalPlaces.first() }
+            val i = async { appPrefs.invertColors.first() }
+            val a = async { appPrefs.widgetBgAlpha.first() }
+            val r = async { appPrefs.widgetCornerRadius.first() }
+            PrefsSnapshot(c.await(), d.await(), i.await(), a.await(), r.await())
+        }
+        Log.d("CbrfWidget", "loadData currencies=$currencies bgAlpha=$bgAlpha")
+
+        // Find effective date; if DB is empty, fetch from network first
+        var effectiveDate = repository.getLatestAvailableDate(today) ?: run {
+            ep.refreshTodayRates()(force = false)
+            repository.getLatestAvailableDate(today) ?: today
+        }
+
         val rates = if (currencies.isEmpty()) {
             emptyList()
         } else {
-            getRates(today)
+            var result = getRates(effectiveDate, today)
                 .filter { it.charCode in currencies }
                 .sortedBy { currencies.indexOf(it.charCode) }
+
+            if (result.isEmpty()) {
+                // Data missing for selected currencies — fetch and retry
+                ep.refreshTodayRates()(force = false)
+                effectiveDate = repository.getLatestAvailableDate(today) ?: today
+                result = getRates(effectiveDate, today)
+                    .filter { it.charCode in currencies }
+                    .sortedBy { currencies.indexOf(it.charCode) }
+            }
+            result
         }
 
-        val dateStr = today.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))
+        val dateStr = effectiveDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))
+        Log.d("CbrfWidget", "loadData END effectiveDate=$effectiveDate rates=${rates.size}")
 
         return WidgetDisplayData(
             appWidgetId = appWidgetId,
@@ -59,6 +94,14 @@ abstract class BaseRateWidget : GlanceAppWidget() {
             bgAlpha = bgAlpha,
             cornerRadius = cornerRadius
         )
+    }
+
+    protected suspend fun loadDataAndPersistState(context: Context, glanceId: GlanceId, maxCurrencies: Int): WidgetDisplayData {
+        val data = loadData(context, glanceId, maxCurrencies)
+        updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
+            prefs.toMutablePreferences().also { it.writeWidgetData(data) }
+        }
+        return data
     }
 }
 
@@ -78,7 +121,7 @@ fun WidgetCurrencyRow(
     val valueColor = trendColor ?: Color(0xFF212121)
 
     Row(
-        modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2.dp),
+        modifier = GlanceModifier.fillMaxWidth().padding(vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -90,7 +133,7 @@ fun WidgetCurrencyRow(
             Text(
                 text = rate.todayValue.formatRate(decimalPlaces),
                 style = TextStyle(
-                    fontSize = 13.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = ColorProvider(valueColor)
                 )

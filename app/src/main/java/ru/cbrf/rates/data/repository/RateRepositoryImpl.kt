@@ -29,12 +29,6 @@ class RateRepositoryImpl @Inject constructor(
     override suspend fun getRatesForDate(date: LocalDate): List<RateEntry> {
         val entities = dao.getRatesForDate(date.format(isoFormatter))
         if (entities.isEmpty()) return emptyList()
-        val charCodes = entities.map { it.charCode }.toSet()
-        val existingCodes = currencyNameDao.getAllCharCodes().toSet()
-        if (!existingCodes.containsAll(charCodes)) {
-            val idToCharCode = dao.getCbrIdToCharCode().associate { it.cbrId to it.charCode }
-            fetchCurrencyNames(idToCharCode)
-        }
         val namesMap = currencyNameDao.getAll().associateBy { it.charCode }
         return entities.map { it.toDomain(namesMap) }
     }

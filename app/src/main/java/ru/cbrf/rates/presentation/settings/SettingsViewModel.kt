@@ -14,6 +14,7 @@ import ru.cbrf.rates.data.local.prefs.AppLanguage
 import ru.cbrf.rates.data.local.prefs.AppPreferences
 import ru.cbrf.rates.data.local.prefs.AppTheme
 import ru.cbrf.rates.data.local.prefs.UpdateInterval
+import ru.cbrf.rates.widget.WidgetUpdateHelper
 import ru.cbrf.rates.worker.RateUpdateWorker
 import javax.inject.Inject
 
@@ -52,11 +53,31 @@ class SettingsViewModel @Inject constructor(
         RateUpdateWorker.schedule(context, interval)
     }
 
-    fun setDecimalPlaces(places: Int) = viewModelScope.launch { prefs.setDecimalPlaces(places) }
+    fun setDecimalPlaces(places: Int) = viewModelScope.launch {
+        prefs.setDecimalPlaces(places)
+        updateAllWidgets()
+    }
 
-    fun setInvertColors(invert: Boolean) = viewModelScope.launch { prefs.setInvertColors(invert) }
+    fun setInvertColors(invert: Boolean) = viewModelScope.launch {
+        prefs.setInvertColors(invert)
+        updateAllWidgets()
+    }
 
-    fun setWidgetBgAlpha(alpha: Float) = viewModelScope.launch { prefs.setWidgetBgAlpha(alpha) }
+    fun setWidgetBgAlpha(alpha: Float) = viewModelScope.launch {
+        prefs.setWidgetBgAlpha(alpha)
+        updateAllWidgets()
+    }
 
-    fun setWidgetCornerRadius(radius: Float) = viewModelScope.launch { prefs.setWidgetCornerRadius(radius) }
+    fun setWidgetCornerRadius(radius: Float) = viewModelScope.launch {
+        prefs.setWidgetCornerRadius(radius)
+        updateAllWidgets()
+    }
+
+    fun updateWidgetsNow() = viewModelScope.launch {
+        updateAllWidgets()
+    }
+
+    private suspend fun updateAllWidgets() {
+        WidgetUpdateHelper.requestUpdate(context)
+    }
 }

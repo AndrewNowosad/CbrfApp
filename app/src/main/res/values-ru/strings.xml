@@ -36,7 +36,7 @@
     <string name="settings_theme_light">Светлая</string>
     <string name="settings_theme_dark">Тёмная</string>
     <string name="settings_widget_appearance">Внешний вид виджетов</string>
-    <string name="settings_widget_bg_alpha">Прозрачность подложки</string>
+    <string name="settings_widget_bg_alpha">Непрозрачность подложки</string>
     <string name="settings_widget_corner_radius">Радиус скругления</string>
 
     <string name="widget_small_label">Курс (Малый)</string>

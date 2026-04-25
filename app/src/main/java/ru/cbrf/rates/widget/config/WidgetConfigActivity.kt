@@ -4,6 +4,9 @@ import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
+import ru.cbrf.rates.widget.LargeRateWidgetReceiver
+import ru.cbrf.rates.widget.MediumRateWidgetReceiver
+import ru.cbrf.rates.widget.SmallRateWidgetReceiver
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -65,7 +68,15 @@ class WidgetConfigActivity : ComponentActivity() {
             return
         }
 
-        viewModel.init(effectiveId)
+        val providerClass = AppWidgetManager.getInstance(this)
+            .getAppWidgetInfo(effectiveId)?.provider?.className ?: ""
+        val sizeHint = when {
+            providerClass.contains(SmallRateWidgetReceiver::class.java.simpleName) -> "SMALL"
+            providerClass.contains(MediumRateWidgetReceiver::class.java.simpleName) -> "MEDIUM"
+            providerClass.contains(LargeRateWidgetReceiver::class.java.simpleName) -> "LARGE"
+            else -> null
+        }
+        viewModel.init(effectiveId, sizeHint)
 
         // Default result = CANCELED
 

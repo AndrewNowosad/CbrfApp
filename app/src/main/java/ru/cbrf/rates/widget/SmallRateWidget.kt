@@ -6,22 +6,28 @@ import android.content.Intent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
+import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
+import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
@@ -31,7 +37,7 @@ import ru.cbrf.rates.widget.config.WidgetConfigActivity
 class SmallRateWidget : BaseRateWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val data = loadData(context, id, maxCurrencies = 1)
+        val data = loadDataAndPersistState(context, id, maxCurrencies = 1)
         val configIntent = Intent(context, WidgetConfigActivity::class.java).apply {
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, data.appWidgetId)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -40,13 +46,31 @@ class SmallRateWidget : BaseRateWidget() {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         provideContent {
-            val bgColor = Color.White.copy(alpha = data.bgAlpha)
+            val prefs = currentState<Preferences>()
+            val displayData = prefs.readWidgetData() ?: data
+            val bgColor = Color.White.copy(alpha = displayData.bgAlpha)
+
+            val size = LocalSize.current
+            val minDim = minOf(size.width, size.height)
+            // 3 tiers: tiny (<80dp) / compact (80-130dp) / full (>130dp)
+            val isTiny = minDim < 80.dp
+            val isFull = minDim > 130.dp
+            val codeTextSize = when { isTiny -> 9.sp; isFull -> 13.sp; else -> 11.sp }
+            val valueTextSize = when { isTiny -> 12.sp; isFull -> 20.sp; else -> 15.sp }
+            val tomorrowTextSize = when { isTiny -> 8.sp; else -> 10.sp }
+            val showFlag = !isTiny
+            val showTomorrow = isFull
+            val pad = if (isTiny) 4.dp else 8.dp
+            val headerSize = when { isTiny -> 8.sp; isFull -> 10.sp; else -> 9.sp }
+            val iconSize = when { isTiny -> 10.sp; isFull -> 14.sp; else -> 11.sp }
+
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
+                    .appWidgetBackground()
                     .background(bgColor)
-                    .cornerRadius(data.cornerRadius.dp)
-                    .padding(8.dp)
+                    .cornerRadius(displayData.cornerRadius.dp)
+                    .padding(pad)
             ) {
                 Column(modifier = GlanceModifier.fillMaxSize()) {
                     Row(
@@ -54,38 +78,69 @@ class SmallRateWidget : BaseRateWidget() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = data.displayDate,
-                            style = TextStyle(
-                                fontSize = 10.sp,
-                                color = ColorProvider(Color(0xFF757575))
-                            ),
+                            text = displayData.displayDate,
+                            style = TextStyle(fontSize = headerSize, color = ColorProvider(Color(0xFF757575))),
                             modifier = GlanceModifier.defaultWeight()
                         )
                         Text(
                             text = "↻",
-                            style = TextStyle(fontSize = 14.sp),
+                            style = TextStyle(fontSize = iconSize),
                             modifier = GlanceModifier.clickable(actionRunCallback<WidgetRefreshCallback>())
                         )
                         Text(
                             text = " ⚙",
-                            style = TextStyle(fontSize = 14.sp),
+                            style = TextStyle(fontSize = iconSize),
                             modifier = GlanceModifier.clickable(actionStartActivity(configIntent))
                         )
                     }
 
-                    if (data.currencies.isNotEmpty()) {
-                        Box(
-                            modifier = GlanceModifier
-                                .fillMaxSize()
-                                .clickable(actionStartActivity(mainIntent)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            WidgetCurrencyRow(
-                                rate = data.currencies.first(),
-                                decimalPlaces = data.decimalPlaces,
-                                invertColors = data.invertColors
-                            )
+                    if (displayData.currencies.isNotEmpty()) {
+                        val rate = displayData.currencies.first()
+                        val trend = rate.trend
+                        val trendColor: Color? = when {
+                            trend == null || trend == 0 -> null
+                            trend > 0 -> if (displayData.invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
+                            else -> if (displayData.invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
                         }
+                        val valueColor = trendColor ?: Color(0xFF212121)
+
+                        Spacer(GlanceModifier.defaultWeight())
+                        Column(
+                            modifier = GlanceModifier
+                                .fillMaxWidth()
+                                .clickable(actionStartActivity(mainIntent)),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = if (showFlag) "${rate.flagEmoji} ${rate.charCode}" else rate.charCode,
+                                style = TextStyle(
+                                    fontSize = codeTextSize,
+                                    fontWeight = FontWeight.Medium,
+                                    color = ColorProvider(Color(0xFF424242))
+                                )
+                            )
+                            Text(
+                                text = rate.todayValue.formatRate(displayData.decimalPlaces),
+                                style = TextStyle(
+                                    fontSize = valueTextSize,
+                                    fontWeight = FontWeight.Bold,
+                                    color = ColorProvider(valueColor)
+                                )
+                            )
+                            if (showTomorrow && rate.tomorrowValue != null) {
+                                val tomorrowTrend = rate.tomorrowValue.compareTo(rate.todayValue)
+                                val tomorrowColor = when {
+                                    tomorrowTrend > 0 -> if (displayData.invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
+                                    tomorrowTrend < 0 -> if (displayData.invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
+                                    else -> Color(0xFF757575)
+                                }
+                                Text(
+                                    text = "→ ${rate.tomorrowValue.formatRate(displayData.decimalPlaces)}",
+                                    style = TextStyle(fontSize = tomorrowTextSize, color = ColorProvider(tomorrowColor))
+                                )
+                            }
+                        }
+                        Spacer(GlanceModifier.defaultWeight())
                     } else {
                         Box(
                             modifier = GlanceModifier
@@ -94,11 +149,8 @@ class SmallRateWidget : BaseRateWidget() {
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Tap ⚙ to configure",
-                                style = TextStyle(
-                                    fontSize = 11.sp,
-                                    color = ColorProvider(Color(0xFF757575))
-                                )
+                                text = "⚙",
+                                style = TextStyle(fontSize = iconSize, color = ColorProvider(Color(0xFF757575)))
                             )
                         }
                     }

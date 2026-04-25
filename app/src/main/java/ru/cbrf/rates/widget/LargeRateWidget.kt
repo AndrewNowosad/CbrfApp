@@ -6,19 +6,23 @@ import android.content.Intent
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.datastore.preferences.core.Preferences
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.action.actionStartActivity
+import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.currentState
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
+import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
@@ -31,7 +35,7 @@ import ru.cbrf.rates.widget.config.WidgetConfigActivity
 class LargeRateWidget : BaseRateWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val data = loadData(context, id, maxCurrencies = 4)
+        val data = loadDataAndPersistState(context, id, maxCurrencies = 4)
         val configIntent = Intent(context, WidgetConfigActivity::class.java).apply {
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, data.appWidgetId)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -40,12 +44,15 @@ class LargeRateWidget : BaseRateWidget() {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         provideContent {
-            val bgColor = Color.White.copy(alpha = data.bgAlpha)
+            val prefs = currentState<Preferences>()
+            val displayData = prefs.readWidgetData() ?: data
+            val bgColor = Color.White.copy(alpha = displayData.bgAlpha)
             Box(
                 modifier = GlanceModifier
                     .fillMaxSize()
+                    .appWidgetBackground()
                     .background(bgColor)
-                    .cornerRadius(data.cornerRadius.dp)
+                    .cornerRadius(displayData.cornerRadius.dp)
                     .padding(8.dp)
             ) {
                 Column(modifier = GlanceModifier.fillMaxSize()) {
@@ -54,7 +61,7 @@ class LargeRateWidget : BaseRateWidget() {
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = data.displayDate,
+                            text = displayData.displayDate,
                             style = TextStyle(
                                 fontSize = 10.sp,
                                 color = ColorProvider(Color(0xFF757575))
@@ -73,18 +80,23 @@ class LargeRateWidget : BaseRateWidget() {
                         )
                     }
 
-                    if (data.currencies.isNotEmpty()) {
+                    if (displayData.currencies.isNotEmpty()) {
                         Column(
                             modifier = GlanceModifier
                                 .fillMaxSize()
                                 .clickable(actionStartActivity(mainIntent))
                         ) {
-                            data.currencies.forEach { rate ->
-                                WidgetCurrencyRow(
-                                    rate = rate,
-                                    decimalPlaces = data.decimalPlaces,
-                                    invertColors = data.invertColors
-                                )
+                            displayData.currencies.forEach { rate ->
+                                Box(
+                                    modifier = GlanceModifier.fillMaxWidth().defaultWeight(),
+                                    contentAlignment = Alignment.CenterStart
+                                ) {
+                                    WidgetCurrencyRow(
+                                        rate = rate,
+                                        decimalPlaces = displayData.decimalPlaces,
+                                        invertColors = displayData.invertColors
+                                    )
+                                }
                             }
                         }
                     } else {

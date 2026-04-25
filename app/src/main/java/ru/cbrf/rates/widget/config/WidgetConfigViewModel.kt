@@ -3,6 +3,7 @@ package ru.cbrf.rates.widget.config
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.util.Log
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,10 +13,8 @@ import kotlinx.coroutines.launch
 import ru.cbrf.rates.data.local.prefs.WidgetPreferences
 import ru.cbrf.rates.domain.model.CurrencyMeta
 import ru.cbrf.rates.domain.usecase.GetRatesForDisplayUseCase
-import androidx.glance.appwidget.updateAll
-import ru.cbrf.rates.widget.LargeRateWidget
-import ru.cbrf.rates.widget.MediumRateWidget
-import ru.cbrf.rates.widget.SmallRateWidget
+import ru.cbrf.rates.domain.usecase.RefreshTodayRatesUseCase
+import ru.cbrf.rates.widget.WidgetUpdateHelper
 import java.time.LocalDate
 import javax.inject.Inject
 
@@ -41,6 +40,7 @@ data class WidgetConfigUiState(
 class WidgetConfigViewModel @Inject constructor(
     private val widgetPrefs: WidgetPreferences,
     private val getRates: GetRatesForDisplayUseCase,
+    private val refreshRates: RefreshTodayRatesUseCase,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -49,13 +49,17 @@ class WidgetConfigViewModel @Inject constructor(
 
     private var appWidgetId: Int = -1
 
-    fun init(appWidgetId: Int) {
+    fun init(appWidgetId: Int, sizeHint: String? = null) {
         if (this.appWidgetId == appWidgetId) return
         this.appWidgetId = appWidgetId
+        Log.d("CbrfWidget", "init appWidgetId=$appWidgetId sizeHint=$sizeHint")
 
         viewModelScope.launch {
             val savedCurrencies = widgetPrefs.getCurrenciesOnce(appWidgetId)
-            val sizeName = widgetPrefs.getSize(appWidgetId)
+            val sizeName = widgetPrefs.getSize(appWidgetId) ?: sizeHint
+            if (sizeHint != null && widgetPrefs.getSize(appWidgetId) == null) {
+                widgetPrefs.setSize(appWidgetId, sizeHint)
+            }
             val maxCurrencies = when (sizeName) {
                 "MEDIUM" -> 2
                 "LARGE" -> 4
@@ -131,12 +135,13 @@ class WidgetConfigViewModel @Inject constructor(
     }
 
     fun save(onDone: suspend () -> Unit) {
+        val codes = _state.value.selectedCodes
+        Log.d("CbrfWidget", "save CALLED appWidgetId=$appWidgetId codes=$codes")
         viewModelScope.launch {
-            widgetPrefs.setCurrencies(appWidgetId, _state.value.selectedCodes)
-            // Trigger widget refresh
-            SmallRateWidget().updateAll(context)
-            MediumRateWidget().updateAll(context)
-            LargeRateWidget().updateAll(context)
+            widgetPrefs.setCurrencies(appWidgetId, codes)
+            Log.d("CbrfWidget", "save setCurrencies DONE appWidgetId=$appWidgetId codes=$codes")
+            WidgetUpdateHelper.requestUpdate(context)
+            Log.d("CbrfWidget", "save requestUpdate DONE, calling onDone")
             onDone()
         }
     }
