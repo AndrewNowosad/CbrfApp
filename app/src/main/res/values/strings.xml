@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CBRF Rates</string>
+
+    <!-- Navigation -->
+    <string name="nav_rates">Rates</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Main screen -->
+    <string name="today">Today</string>
+    <string name="tomorrow">Tomorrow</string>
+    <string name="select_date">Select date</string>
+    <string name="pull_to_refresh">Pull to refresh</string>
+    <string name="rate_date_format">dd MMM yyyy</string>
+    <string name="no_rates">No rates available</string>
+    <string name="loading">Loading…</string>
+    <string name="error_network">Network error. Showing cached data.</string>
+    <string name="last_updated">Updated: %s</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_update_interval">Update interval</string>
+    <string name="settings_interval_1h">Every 1 hour</string>
+    <string name="settings_interval_3h">Every 3 hours</string>
+    <string name="settings_interval_6h">Every 6 hours</string>
+    <string name="settings_interval_12h">Every 12 hours</string>
+    <string name="settings_interval_24h">Every 24 hours</string>
+    <string name="settings_decimal_places">Decimal places</string>
+    <string name="settings_decimals_2">2 decimal places</string>
+    <string name="settings_decimals_4">4 decimal places</string>
+    <string name="settings_color_inversion">Invert colors</string>
+    <string name="settings_color_inversion_desc">Green = decrease, red = increase</string>
+    <string name="settings_theme">Theme</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_theme_auto">Auto (system)</string>
+    <string name="settings_widget_appearance">Widget appearance</string>
+    <string name="settings_widget_bg_alpha">Background opacity</string>
+    <string name="settings_widget_corner_radius">Corner radius</string>
+
+    <!-- Widgets -->
+    <string name="widget_small_label">Rate (Small)</string>
+    <string name="widget_small_description">Shows 1 currency rate</string>
+    <string name="widget_medium_label">Rate (Medium)</string>
+    <string name="widget_medium_description">Shows up to 2 currency rates</string>
+    <string name="widget_large_label">Rate (Large)</string>
+    <string name="widget_large_description">Shows up to 4 currency rates</string>
+    <string name="widget_refresh">Refresh</string>
+    <string name="widget_settings">Widget settings</string>
+    <string name="widget_open_app">Open app</string>
+
+    <!-- Widget config -->
+    <string name="widget_config_title">Configure widget</string>
+    <string name="widget_config_search">Search currency…</string>
+    <string name="widget_config_max_hint">Select up to %d currencies</string>
+    <string name="widget_config_save">Save</string>
+    <string name="widget_config_cancel">Cancel</string>
+    <string name="widget_config_reorder_hint">Hold and drag to reorder</string>
+</resources>

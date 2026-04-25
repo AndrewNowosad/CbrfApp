@@ -1,0 +1,4 @@
+-keep class ru.cbrf.rates.** { *; }
+-keepattributes *Annotation*
+-dontwarn okhttp3.**
+-dontwarn retrofit2.**
