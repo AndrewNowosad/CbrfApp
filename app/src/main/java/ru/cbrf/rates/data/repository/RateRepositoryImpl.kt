@@ -1,9 +1,12 @@
 package ru.cbrf.rates.data.repository
 
+import ru.cbrf.rates.data.local.db.CurrencyNameDao
+import ru.cbrf.rates.data.local.db.CurrencyNameEntity
 import ru.cbrf.rates.data.local.db.RateDao
 import ru.cbrf.rates.data.local.db.RateEntity
 import ru.cbrf.rates.data.remote.CbrfApi
 import ru.cbrf.rates.data.remote.CbrfXmlParser
+import ru.cbrf.rates.data.remote.CurrencyValParser
 import ru.cbrf.rates.domain.model.CurrencyMeta
 import ru.cbrf.rates.domain.model.RateEntry
 import ru.cbrf.rates.domain.repository.RateRepository
@@ -16,14 +19,24 @@ import javax.inject.Singleton
 @Singleton
 class RateRepositoryImpl @Inject constructor(
     private val api: CbrfApi,
-    private val dao: RateDao
+    private val dao: RateDao,
+    private val currencyNameDao: CurrencyNameDao
 ) : RateRepository {
 
     private val isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     private val cbrfDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
 
     override suspend fun getRatesForDate(date: LocalDate): List<RateEntry> {
-        return dao.getRatesForDate(date.format(isoFormatter)).map { it.toDomain() }
+        val entities = dao.getRatesForDate(date.format(isoFormatter))
+        if (entities.isEmpty()) return emptyList()
+        val charCodes = entities.map { it.charCode }.toSet()
+        val existingCodes = currencyNameDao.getAllCharCodes().toSet()
+        if (!existingCodes.containsAll(charCodes)) {
+            val idToCharCode = dao.getCbrIdToCharCode().associate { it.cbrId to it.charCode }
+            fetchCurrencyNames(idToCharCode)
+        }
+        val namesMap = currencyNameDao.getAll().associateBy { it.charCode }
+        return entities.map { it.toDomain(namesMap) }
     }
 
     override suspend fun fetchRatesIfNeeded(date: LocalDate): Result<Boolean> {
@@ -53,15 +66,13 @@ class RateRepositoryImpl @Inject constructor(
             val (publishDate, dtos) = CbrfXmlParser.parse(xmlString)
 
             if (dtos.isEmpty() || publishDate == null) return@runCatching false
-
-            // CBRF returns the actual date in the response; if it doesn't match requested date,
-            // the requested date has no published rate (e.g. future date not yet available)
             if (publishDate != date) return@runCatching false
 
             val entities = dtos.map { dto ->
                 RateEntity(
                     date = date.format(isoFormatter),
                     charCode = dto.charCode,
+                    cbrId = dto.cbrId,
                     numCode = dto.numCode,
                     nominal = dto.nominal,
                     nameRu = dto.nameRu,
@@ -71,19 +82,53 @@ class RateRepositoryImpl @Inject constructor(
             }
             dao.insertRates(entities)
 
-            // Prune rates older than 60 days to keep the DB small
             val cutoff = date.minusDays(60).format(isoFormatter)
             dao.deleteOlderThan(cutoff)
+
+            val charCodes = entities.map { it.charCode }.toSet()
+            val idToCharCode = dtos.associate { it.cbrId to it.charCode }
+            ensureCurrencyNamesLoaded(charCodes, idToCharCode)
 
             true
         }
     }
 
-    private fun RateEntity.toDomain() = RateEntry(
+    private suspend fun ensureCurrencyNamesLoaded(
+        charCodes: Set<String>,
+        idToCharCode: Map<String, String>
+    ) {
+        val existingCodes = currencyNameDao.getAllCharCodes().toSet()
+        if (existingCodes.isEmpty() || !existingCodes.containsAll(charCodes)) {
+            fetchCurrencyNames(idToCharCode)
+        }
+    }
+
+    private suspend fun fetchCurrencyNames(idToCharCode: Map<String, String>) {
+        runCatching {
+            val charset = Charset.forName("windows-1251")
+            val dtosD0 = CurrencyValParser.parse(api.getValuteListD0().bytes().toString(charset))
+            val dtosD1 = CurrencyValParser.parse(api.getValuteListD1().bytes().toString(charset))
+            // d=0 takes priority (more current names), d=1 fills in the rest
+            val mergedById = (dtosD1 + dtosD0).distinctBy { it.cbrId }
+            val entities = mergedById.mapNotNull { dto ->
+                val charCode = idToCharCode[dto.cbrId] ?: return@mapNotNull null
+                CurrencyNameEntity(
+                    charCode = charCode,
+                    nameRu = dto.nameRu,
+                    nameEn = dto.nameEn.ifBlank { CurrencyMeta.nameEnFor(charCode, dto.nameRu) }
+                )
+            }
+            if (entities.isNotEmpty()) {
+                currencyNameDao.insertAll(entities)
+            }
+        }
+    }
+
+    private fun RateEntity.toDomain(namesMap: Map<String, CurrencyNameEntity>) = RateEntry(
         date = LocalDate.parse(this.date, isoFormatter),
         charCode = charCode,
-        nameRu = nameRu,
-        nameEn = nameEn,
+        nameRu = namesMap[charCode]?.nameRu ?: nameRu,
+        nameEn = namesMap[charCode]?.nameEn ?: nameEn,
         nominal = nominal,
         value = value,
         flagEmoji = CurrencyMeta.flagFor(charCode)

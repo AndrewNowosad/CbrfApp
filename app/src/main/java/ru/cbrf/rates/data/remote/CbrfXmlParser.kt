@@ -6,6 +6,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 data class CurrencyXmlDto(
+    val cbrId: String,
     val charCode: String,
     val numCode: String,
     val nominal: Int,
@@ -24,6 +25,7 @@ object CbrfXmlParser {
         var publishDate: LocalDate? = null
         val results = mutableListOf<CurrencyXmlDto>()
 
+        var cbrId = ""
         var charCode = ""
         var numCode = ""
         var nominal = 1
@@ -46,6 +48,7 @@ object CbrfXmlParser {
                         }
                         "Valute" -> {
                             insideValute = true
+                            cbrId = parser.getAttributeValue(null, "ID") ?: ""
                             charCode = ""; numCode = ""; nominal = 1; nameRu = ""; value = 0.0
                         }
                     }
@@ -66,7 +69,7 @@ object CbrfXmlParser {
                     if (parser.name == "Valute" && insideValute) {
                         insideValute = false
                         if (charCode.isNotEmpty() && value > 0.0) {
-                            results += CurrencyXmlDto(charCode, numCode, nominal, nameRu, value, publishDate)
+                            results += CurrencyXmlDto(cbrId, charCode, numCode, nominal, nameRu, value, publishDate)
                         }
                     }
                     currentTag = ""

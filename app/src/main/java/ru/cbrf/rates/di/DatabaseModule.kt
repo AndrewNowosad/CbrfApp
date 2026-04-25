@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import ru.cbrf.rates.data.local.db.CurrencyNameDao
 import ru.cbrf.rates.data.local.db.RateDao
 import ru.cbrf.rates.data.local.db.RateDatabase
 import javax.inject.Singleton
@@ -24,4 +25,7 @@ object DatabaseModule {
 
     @Provides
     fun provideRateDao(db: RateDatabase): RateDao = db.rateDao()
+
+    @Provides
+    fun provideCurrencyNameDao(db: RateDatabase): CurrencyNameDao = db.currencyNameDao()
 }

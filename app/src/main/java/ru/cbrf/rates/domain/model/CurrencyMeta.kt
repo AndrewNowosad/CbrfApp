@@ -26,7 +26,7 @@ object CurrencyMeta {
         "NOK" to Info("🇳🇴", "Norwegian Krone"),
         "PLN" to Info("🇵🇱", "Polish Zloty"),
         "RON" to Info("🇷🇴", "Romanian Leu"),
-        "XDR" to Info("🌐", "SDR"),
+        "XDR" to Info("🌐",  "SDR"),
         "SGD" to Info("🇸🇬", "Singapore Dollar"),
         "TJS" to Info("🇹🇯", "Tajikistani Somoni"),
         "TRY" to Info("🇹🇷", "Turkish Lira"),

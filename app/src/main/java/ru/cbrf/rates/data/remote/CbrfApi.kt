@@ -13,4 +13,10 @@ interface CbrfApi {
     suspend fun getDailyRates(
         @Query("date_req") dateReq: String? = null
     ): ResponseBody
+
+    @GET("XML_val.asp")
+    suspend fun getValuteListD0(): ResponseBody
+
+    @GET("XML_val.asp?d=1")
+    suspend fun getValuteListD1(): ResponseBody
 }

@@ -21,4 +21,9 @@ interface RateDao {
 
     @Query("DELETE FROM rates WHERE date < :cutoff")
     suspend fun deleteOlderThan(cutoff: String)
+
+    @Query("SELECT cbrId, charCode FROM rates WHERE cbrId != '' GROUP BY cbrId")
+    suspend fun getCbrIdToCharCode(): List<CbrIdCharCode>
 }
+
+data class CbrIdCharCode(val cbrId: String, val charCode: String)
