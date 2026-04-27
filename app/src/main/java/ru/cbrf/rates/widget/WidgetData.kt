@@ -6,6 +6,8 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import ru.cbrf.rates.data.local.prefs.WidgetBgColorMode
 import ru.cbrf.rates.domain.model.CurrencyRateUiModel
 
@@ -68,23 +70,10 @@ internal fun Preferences.readWidgetData(): WidgetDisplayData? {
 }
 
 private fun List<CurrencyRateUiModel>.encodeCurrencies(): String =
-    joinToString("\n") { c ->
-        "${c.charCode}|${c.flagEmoji}|${c.nameEn}|${c.nameRu}|${c.todayValue}|${c.tomorrowValue ?: ""}|${c.previousValue ?: ""}"
-    }
+    Json.encodeToString(this)
 
 private fun String?.decodeCurrencies(): List<CurrencyRateUiModel> {
     if (isNullOrBlank()) return emptyList()
-    return lines().mapNotNull { line ->
-        val p = line.split("|")
-        if (p.size < 7) return@mapNotNull null
-        CurrencyRateUiModel(
-            charCode = p[0],
-            flagEmoji = p[1],
-            nameEn = p[2],
-            nameRu = p[3],
-            todayValue = p[4].toDoubleOrNull() ?: return@mapNotNull null,
-            tomorrowValue = p[5].toDoubleOrNull(),
-            previousValue = p[6].toDoubleOrNull()
-        )
-    }
+    return runCatching { Json.decodeFromString<List<CurrencyRateUiModel>>(this) }
+        .getOrDefault(emptyList())
 }

@@ -2,6 +2,7 @@ package ru.cbrf.rates.domain.model
 
 import java.time.LocalDate
 import java.util.Locale
+import kotlinx.serialization.Serializable
 
 data class RateEntry(
     val date: LocalDate,
@@ -16,6 +17,7 @@ data class RateEntry(
     val unitValue: Double get() = value / nominal
 }
 
+@Serializable
 data class CurrencyRateUiModel(
     val charCode: String,
     val nameRu: String,
