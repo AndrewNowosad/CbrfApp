@@ -55,6 +55,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.hilt.navigation.compose.hiltViewModel
 import ru.cbrf.rates.R
 import ru.cbrf.rates.domain.model.CurrencyRateUiModel
@@ -255,6 +256,8 @@ private fun RateRow(
     decimalPlaces: Int,
     invertColors: Boolean
 ) {
+    val isRu = LocalConfiguration.current.locales[0].language == "ru"
+    val displayName = if (isRu) rate.nameRu else rate.nameEn
     val trend = rate.trend
     val trendColor = when {
         trend == null -> MaterialTheme.colorScheme.onSurface
@@ -275,7 +278,7 @@ private fun RateRow(
         Column(Modifier.weight(1f)) {
             Text(text = rate.charCode, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
             Text(
-                text = rate.displayName,
+                text = displayName,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
