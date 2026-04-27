@@ -23,10 +23,12 @@ import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import android.util.Log
 import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
 import ru.cbrf.rates.domain.repository.RateRepository
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withTimeout
 import ru.cbrf.rates.domain.model.CurrencyRateUiModel
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -37,69 +39,76 @@ abstract class BaseRateWidget : GlanceAppWidget() {
     override val sizeMode = SizeMode.Exact
     override val stateDefinition: GlanceStateDefinition<*> = PreferencesGlanceStateDefinition
 
-    internal suspend fun loadData(context: Context, glanceId: GlanceId, maxCurrencies: Int): WidgetDisplayData {
+    internal suspend fun loadData(context: Context, glanceId: GlanceId, maxCurrencies: Int): WidgetDisplayData? {
         val ep = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
-        val widgetPrefs = ep.widgetPreferences()
-        val appPrefs = ep.appPreferences()
-        val getRates = ep.getRatesForDisplay()
-
-        val repository = ep.rateRepository()
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
-        val today = LocalDate.now()
         Log.d("CbrfWidget", "loadData START appWidgetId=$appWidgetId glanceId=$glanceId")
 
-        val (currencies, decimalPlaces, invertColors, bgAlpha, cornerRadius, bgColorMode) = coroutineScope {
-            val c = async { widgetPrefs.getCurrenciesOnce(appWidgetId).take(maxCurrencies) }
-            val d = async { appPrefs.decimalPlaces.first() }
-            val i = async { appPrefs.invertColors.first() }
-            val a = async { appPrefs.widgetBgAlpha.first() }
-            val r = async { appPrefs.widgetCornerRadius.first() }
-            val m = async { appPrefs.widgetBgColorMode.first() }
-            PrefsSnapshot(c.await(), d.await(), i.await(), a.await(), r.await(), m.await())
-        }
-        Log.d("CbrfWidget", "loadData currencies=$currencies bgAlpha=$bgAlpha")
+        return try {
+            withTimeout(30_000L) {
+                val widgetPrefs = ep.widgetPreferences()
+                val appPrefs = ep.appPreferences()
+                val getRates = ep.getRatesForDisplay()
+                val repository = ep.rateRepository()
+                val today = LocalDate.now()
 
-        // Find effective date; if DB is empty, fetch from network first
-        var effectiveDate = repository.getLatestAvailableDate(today) ?: run {
-            ep.refreshTodayRates()(force = false)
-            repository.getLatestAvailableDate(today) ?: today
-        }
+                val (currencies, decimalPlaces, invertColors, bgAlpha, cornerRadius, bgColorMode) = coroutineScope {
+                    val c = async { widgetPrefs.getCurrenciesOnce(appWidgetId).take(maxCurrencies) }
+                    val d = async { appPrefs.decimalPlaces.first() }
+                    val i = async { appPrefs.invertColors.first() }
+                    val a = async { appPrefs.widgetBgAlpha.first() }
+                    val r = async { appPrefs.widgetCornerRadius.first() }
+                    val m = async { appPrefs.widgetBgColorMode.first() }
+                    PrefsSnapshot(c.await(), d.await(), i.await(), a.await(), r.await(), m.await())
+                }
+                Log.d("CbrfWidget", "loadData currencies=$currencies bgAlpha=$bgAlpha")
 
-        val rates = if (currencies.isEmpty()) {
-            emptyList()
-        } else {
-            var result = getRates(effectiveDate, today)
-                .filter { it.charCode in currencies }
-                .sortedBy { currencies.indexOf(it.charCode) }
+                // Find effective date; if DB is empty, fetch from network first
+                var effectiveDate = repository.getLatestAvailableDate(today) ?: run {
+                    ep.refreshTodayRates()(force = false)
+                    repository.getLatestAvailableDate(today) ?: today
+                }
 
-            if (result.isEmpty()) {
-                // Data missing for selected currencies — fetch and retry
-                ep.refreshTodayRates()(force = false)
-                effectiveDate = repository.getLatestAvailableDate(today) ?: today
-                result = getRates(effectiveDate, today)
-                    .filter { it.charCode in currencies }
-                    .sortedBy { currencies.indexOf(it.charCode) }
+                val rates = if (currencies.isEmpty()) {
+                    emptyList()
+                } else {
+                    var result = getRates(effectiveDate, today)
+                        .filter { it.charCode in currencies }
+                        .sortedBy { currencies.indexOf(it.charCode) }
+
+                    if (result.isEmpty()) {
+                        // Data missing for selected currencies — fetch and retry
+                        ep.refreshTodayRates()(force = false)
+                        effectiveDate = repository.getLatestAvailableDate(today) ?: today
+                        result = getRates(effectiveDate, today)
+                            .filter { it.charCode in currencies }
+                            .sortedBy { currencies.indexOf(it.charCode) }
+                    }
+                    result
+                }
+
+                val dateStr = effectiveDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))
+                Log.d("CbrfWidget", "loadData END effectiveDate=$effectiveDate rates=${rates.size}")
+
+                WidgetDisplayData(
+                    appWidgetId = appWidgetId,
+                    currencies = rates,
+                    displayDate = dateStr,
+                    decimalPlaces = decimalPlaces,
+                    invertColors = invertColors,
+                    bgAlpha = bgAlpha,
+                    cornerRadius = cornerRadius,
+                    bgColorMode = bgColorMode
+                )
             }
-            result
+        } catch (e: TimeoutCancellationException) {
+            Log.w("CbrfWidget", "loadData timed out after 30 s for appWidgetId=$appWidgetId")
+            null
         }
-
-        val dateStr = effectiveDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))
-        Log.d("CbrfWidget", "loadData END effectiveDate=$effectiveDate rates=${rates.size}")
-
-        return WidgetDisplayData(
-            appWidgetId = appWidgetId,
-            currencies = rates,
-            displayDate = dateStr,
-            decimalPlaces = decimalPlaces,
-            invertColors = invertColors,
-            bgAlpha = bgAlpha,
-            cornerRadius = cornerRadius,
-            bgColorMode = bgColorMode
-        )
     }
 
-    protected suspend fun loadDataAndPersistState(context: Context, glanceId: GlanceId, maxCurrencies: Int): WidgetDisplayData {
-        val data = loadData(context, glanceId, maxCurrencies)
+    protected suspend fun loadDataAndPersistState(context: Context, glanceId: GlanceId, maxCurrencies: Int): WidgetDisplayData? {
+        val data = loadData(context, glanceId, maxCurrencies) ?: return null
         updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
             prefs.toMutablePreferences().also { it.writeWidgetData(data) }
         }

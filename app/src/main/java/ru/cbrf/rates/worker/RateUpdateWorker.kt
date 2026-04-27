@@ -9,8 +9,10 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import android.util.Log
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import kotlinx.coroutines.withTimeoutOrNull
 import ru.cbrf.rates.data.local.prefs.UpdateInterval
 import ru.cbrf.rates.domain.usecase.RefreshTodayRatesUseCase
 import ru.cbrf.rates.widget.WidgetUpdateHelper
@@ -24,9 +26,16 @@ class RateUpdateWorker @AssistedInject constructor(
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
-        val result = refreshRates(force = false)
-        updateAllWidgets()
-        return if (result.isSuccess) Result.success() else Result.retry()
+        val timedOut = withTimeoutOrNull(60_000L) {
+            val result = refreshRates(force = false)
+            updateAllWidgets()
+            result
+        }
+        if (timedOut == null) {
+            Log.w("RateUpdateWorker", "doWork timed out after 60 s — scheduling retry")
+            return Result.retry()
+        }
+        return if (timedOut.isSuccess) Result.success() else Result.retry()
     }
 
     private suspend fun updateAllWidgets() {

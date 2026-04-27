@@ -42,7 +42,7 @@ class SmallRateWidget : BaseRateWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val data = loadDataAndPersistState(context, id, maxCurrencies = 1)
         val configIntent = Intent(context, WidgetConfigActivity::class.java).apply {
-            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, data.appWidgetId)
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, data?.appWidgetId ?: 0)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         }
         val mainIntent = Intent(context, MainActivity::class.java).apply {
@@ -50,7 +50,7 @@ class SmallRateWidget : BaseRateWidget() {
         }
         provideContent {
             val prefs = currentState<Preferences>()
-            val displayData = prefs.readWidgetData() ?: data
+            val displayData = prefs.readWidgetData() ?: data ?: return@provideContent
             val isDark = (LocalContext.current.resources.configuration.uiMode
                     and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
             val bgBase = when (displayData.bgColorMode) {

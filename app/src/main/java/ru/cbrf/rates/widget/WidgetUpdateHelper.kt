@@ -21,7 +21,7 @@ object WidgetUpdateHelper {
         val manager = GlanceAppWidgetManager(context)
         val glanceIds = manager.getGlanceIds(widget.javaClass)
         for (glanceId in glanceIds) {
-            val data = widget.loadData(context, glanceId, maxCurrencies)
+            val data = widget.loadData(context, glanceId, maxCurrencies) ?: continue
             updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
                 prefs.toMutablePreferences().also { it.writeWidgetData(data) }
             }
