@@ -1,8 +1,10 @@
 package ru.cbrf.rates.presentation.main
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -35,6 +37,10 @@ class MainViewModel @Inject constructor(
     private val repository: RateRepository,
     private val appPreferences: AppPreferences
 ) : ViewModel() {
+
+    private val exceptionHandler = CoroutineExceptionHandler { _, e ->
+        Log.e(TAG, "Unhandled coroutine exception", e)
+    }
 
     private val _displayDate = MutableStateFlow(LocalDate.now())
     private val _isLoading = MutableStateFlow(false)
@@ -80,7 +86,7 @@ class MainViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        viewModelScope.launch {
+        viewModelScope.launch(exceptionHandler) {
             _isLoading.value = true
             _hasError.value = false
             val result = refreshTodayRates(force = force)
@@ -102,7 +108,7 @@ class MainViewModel @Inject constructor(
     fun setDisplayDate(date: LocalDate) {
         val clamped = minOf(date, LocalDate.now().plusDays(1))
         _displayDate.value = clamped
-        viewModelScope.launch {
+        viewModelScope.launch(exceptionHandler) {
             _isLoading.value = true
             _hasError.value = false
             repository.fetchRatesIfNeeded(clamped).onFailure { _hasError.value = true }
@@ -124,5 +130,9 @@ class MainViewModel @Inject constructor(
     fun jumpToTomorrow() {
         val tomorrow = LocalDate.now().plusDays(1)
         setDisplayDate(tomorrow)
+    }
+
+    companion object {
+        private const val TAG = "MainViewModel"
     }
 }
