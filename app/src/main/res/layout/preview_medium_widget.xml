@@ -6,6 +6,7 @@
     android:orientation="vertical"
     android:padding="8dp">
 
+    <!-- Header row: date + controls -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,17 +15,24 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="4/25/26"
-            android:textColor="#9E9E9E"
-            android:textSize="9sp" />
+            android:text="4/27/26"
+            android:textColor="#757575"
+            android:textSize="11sp" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="↻ ⚙"
-            android:textColor="#9E9E9E"
-            android:textSize="11sp" />
+            android:text="↻"
+            android:textColor="#757575"
+            android:textSize="16sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" ⚙"
+            android:textColor="#757575"
+            android:textSize="16sp" />
     </LinearLayout>
 
+    <!-- Currency rows -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -32,48 +40,76 @@
         android:gravity="center_vertical"
         android:orientation="vertical">
 
+        <!-- USD row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingVertical="3dp">
+            android:paddingVertical="2dp">
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_gravity="center_vertical"
                 android:text="🇺🇸 USD"
-                android:textColor="#424242"
-                android:textSize="12sp"
+                android:textColor="#212121"
+                android:textSize="15sp"
                 android:textStyle="bold" />
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="75.5273"
-                android:textColor="#388E3C"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:orientation="vertical"
+                android:gravity="end">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="81.5027"
+                    android:textColor="#388E3C"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="→ 81.8450"
+                    android:textColor="#388E3C"
+                    android:textSize="13sp" />
+            </LinearLayout>
         </LinearLayout>
 
+        <!-- EUR row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:paddingVertical="3dp">
+            android:paddingVertical="2dp">
             <TextView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_gravity="center_vertical"
                 android:text="🇪🇺 EUR"
-                android:textColor="#424242"
-                android:textSize="12sp"
+                android:textColor="#212121"
+                android:textSize="15sp"
                 android:textStyle="bold" />
-            <TextView
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="88.2826"
-                android:textColor="#D32F2F"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+                android:orientation="vertical"
+                android:gravity="end">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="92.3184"
+                    android:textColor="#D32F2F"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="→ 91.9760"
+                    android:textColor="#D32F2F"
+                    android:textSize="13sp" />
+            </LinearLayout>
         </LinearLayout>
 
     </LinearLayout>
