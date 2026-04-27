@@ -64,9 +64,10 @@ class RateRepositoryImpl @Inject constructor(
 
             if (publishDate != date) {
                 // CBR returned an earlier date (weekend/holiday gap).
-                // For past dates: cache all dates from publishDate through requestedDate so
-                // subsequent requests for any date in the gap skip the network.
-                if (date < LocalDate.now() && publishDate < date) {
+                // Cache all dates from publishDate through requestedDate — today and past
+                // dates are already final and will not receive a different publication.
+                // Only future dates are excluded (CBR will publish real rates for them later).
+                if (date <= LocalDate.now() && publishDate < date) {
                     val charCodes = dtos.map { it.charCode }.toSet()
                     val idToCharCode = dtos.associate { it.cbrId to it.charCode }
                     var d = publishDate
@@ -80,7 +81,7 @@ class RateRepositoryImpl @Inject constructor(
                     ensureCurrencyNamesLoaded(charCodes, idToCharCode)
                     return@runCatching true
                 }
-                // Today's rates not yet published — nothing to cache.
+                // Future date — real rates will be published later, don't cache yet.
                 return@runCatching false
             }
 

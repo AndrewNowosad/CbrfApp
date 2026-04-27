@@ -66,8 +66,9 @@ class WidgetConfigViewModel @Inject constructor(
                 else -> 1
             }
 
-            // Load all available currencies from today's rates
-            val allRates = getRates(LocalDate.now())
+            // Use effective date (handles weekends/holidays — may differ from today)
+            val effectiveDate = refreshRates(force = false).getOrNull() ?: LocalDate.now()
+            val allRates = getRates(effectiveDate)
             val allItems = allRates.map { rate ->
                 CurrencyItem(
                     charCode = rate.charCode,
