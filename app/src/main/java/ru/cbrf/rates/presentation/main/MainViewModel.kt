@@ -42,27 +42,36 @@ class MainViewModel @Inject constructor(
     private val _rates = MutableStateFlow<List<CurrencyRateUiModel>>(emptyList())
     private val _effectiveDate = MutableStateFlow(LocalDate.now())
 
+    private data class DateRates(
+        val displayDate: LocalDate,
+        val effectiveDate: LocalDate,
+        val rates: List<CurrencyRateUiModel>
+    )
+
+    private data class Prefs(
+        val isLoading: Boolean,
+        val hasError: Boolean,
+        val decimalPlaces: Int,
+        val invertColors: Boolean
+    )
+
     val uiState: StateFlow<MainUiState> = combine(
-        combine(_displayDate, _effectiveDate, _rates) { a, b, c -> Triple(a, b, c) },
-        combine(_isLoading, _hasError, appPreferences.decimalPlaces, appPreferences.invertColors) { a, b, c, d ->
-            listOf(a, b, c, d)
+        combine(_displayDate, _effectiveDate, _rates) { displayDate, effectiveDate, rates ->
+            DateRates(displayDate, effectiveDate, rates)
+        },
+        combine(_isLoading, _hasError, appPreferences.decimalPlaces, appPreferences.invertColors) { isLoading, hasError, decimalPlaces, invertColors ->
+            Prefs(isLoading, hasError, decimalPlaces, invertColors)
         }
-    ) { (displayDate, effectiveDate, rates), extras ->
-        @Suppress("UNCHECKED_CAST")
-        val ratesList = rates as List<CurrencyRateUiModel>
-        val isLoading = extras[0] as Boolean
-        val hasError = extras[1] as Boolean
-        val decimals = extras[2] as Int
-        val invert = extras[3] as Boolean
+    ) { dateRates, prefs ->
         MainUiState(
-            displayDate = displayDate,
-            effectiveDate = effectiveDate,
-            rates = ratesList,
-            isLoading = isLoading,
-            hasError = hasError,
-            decimalPlaces = decimals,
-            invertColors = invert,
-            hasTomorrow = ratesList.any { it.tomorrowValue != null }
+            displayDate = dateRates.displayDate,
+            effectiveDate = dateRates.effectiveDate,
+            rates = dateRates.rates,
+            isLoading = prefs.isLoading,
+            hasError = prefs.hasError,
+            decimalPlaces = prefs.decimalPlaces,
+            invertColors = prefs.invertColors,
+            hasTomorrow = dateRates.rates.any { it.tomorrowValue != null }
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), MainUiState())
 

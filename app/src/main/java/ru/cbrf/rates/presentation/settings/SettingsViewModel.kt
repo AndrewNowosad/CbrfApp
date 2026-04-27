@@ -36,19 +36,26 @@ class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
+    private data class WidgetPrefs(
+        val invertColors: Boolean,
+        val widgetBgAlpha: Float,
+        val widgetCornerRadius: Float,
+        val widgetBgColorMode: WidgetBgColorMode
+    )
+
     val uiState: StateFlow<SettingsUiState> = combine(
         combine(prefs.language, prefs.theme, prefs.updateInterval, prefs.decimalPlaces) { lang, theme, interval, decimals ->
             SettingsUiState(language = lang, theme = theme, updateInterval = interval, decimalPlaces = decimals)
         },
         combine(prefs.invertColors, prefs.widgetBgAlpha, prefs.widgetCornerRadius, prefs.widgetBgColorMode) { invert, alpha, radius, colorMode ->
-            listOf(invert, alpha, radius, colorMode)
+            WidgetPrefs(invert, alpha, radius, colorMode)
         }
-    ) { base, extras ->
+    ) { base, widgetPrefs ->
         base.copy(
-            invertColors = extras[0] as Boolean,
-            widgetBgAlpha = extras[1] as Float,
-            widgetCornerRadius = extras[2] as Float,
-            widgetBgColorMode = extras[3] as WidgetBgColorMode
+            invertColors = widgetPrefs.invertColors,
+            widgetBgAlpha = widgetPrefs.widgetBgAlpha,
+            widgetCornerRadius = widgetPrefs.widgetCornerRadius,
+            widgetBgColorMode = widgetPrefs.widgetBgColorMode
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), SettingsUiState())
 
