@@ -187,7 +187,7 @@ fun MainScreen(
 
     if (showDatePicker) {
         val tomorrow = LocalDate.now().plusDays(1)
-        val tomorrowMillis = tomorrow.atStartOfDay(ZoneId.of("UTC")).toInstant().toEpochMilli()
+        val tomorrowMillis = tomorrow.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = state.displayDate
                 .atStartOfDay(ZoneId.systemDefault())
