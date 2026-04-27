@@ -23,12 +23,10 @@ class RefreshTodayRatesUseCase @Inject constructor(
         val effectiveDate = if (todayResult.getOrNull() == false) {
             var candidate = today.minusDays(1)
             var found = false
-            repeat(MAX_RATE_LOOKBACK_DAYS) {
-                if (!found) {
-                    val r = repository.fetchRatesIfNeeded(candidate)
-                    if (r.getOrNull() == true) found = true
-                    else candidate = candidate.minusDays(1)
-                }
+            for (i in 1..MAX_RATE_LOOKBACK_DAYS) {
+                val r = repository.fetchRatesIfNeeded(candidate)
+                if (r.getOrNull() == true) { found = true; break }
+                candidate = candidate.minusDays(1)
             }
             if (found) candidate else today
         } else {
