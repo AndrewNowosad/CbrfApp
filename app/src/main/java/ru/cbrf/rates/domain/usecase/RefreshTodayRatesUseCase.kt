@@ -37,7 +37,7 @@ class RefreshTodayRatesUseCase @Inject constructor(
         repository.fetchRatesIfNeeded(today.plusDays(1))
 
         return if (todayResult.isFailure && effectiveDate == today) {
-            Result.failure(todayResult.exceptionOrNull()!!)
+            Result.failure(todayResult.exceptionOrNull() ?: IllegalStateException("Unknown error"))
         } else {
             Result.success(effectiveDate)
         }

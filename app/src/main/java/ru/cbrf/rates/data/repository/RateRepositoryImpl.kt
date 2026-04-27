@@ -11,6 +11,7 @@ import ru.cbrf.rates.data.remote.CurrencyXmlDto
 import ru.cbrf.rates.domain.model.CurrencyMeta
 import ru.cbrf.rates.domain.model.RateEntry
 import ru.cbrf.rates.domain.repository.RateRepository
+import android.util.Log
 import java.nio.charset.Charset
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -28,6 +29,7 @@ class RateRepositoryImpl @Inject constructor(
 
     private val isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     private val cbrfDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    private val CBRF_CHARSET = Charset.forName("windows-1251")
 
     private val currencyNamesMutex = Mutex()
 
@@ -61,7 +63,7 @@ class RateRepositoryImpl @Inject constructor(
         return runCatching {
             val dateParam = date.format(cbrfDateFormatter)
             val responseBody = api.getDailyRates(dateParam)
-            val xmlString = responseBody.bytes().toString(Charset.forName("windows-1251"))
+            val xmlString = responseBody.bytes().toString(CBRF_CHARSET)
             val (rawPublishDate, dtos) = CbrfXmlParser.parse(xmlString)
             if (dtos.isEmpty() || rawPublishDate == null) return@runCatching false
             val publishDate: LocalDate = rawPublishDate
@@ -100,7 +102,7 @@ class RateRepositoryImpl @Inject constructor(
             ensureCurrencyNamesLoaded(charCodes, idToCharCode)
 
             true
-        }
+        }.onFailure { Log.e(TAG, "fetchFromNetwork failed for date=$date", it) }
     }
 
     private fun buildEntities(dtos: List<CurrencyXmlDto>, dateStr: String): List<RateEntity> =
@@ -129,9 +131,8 @@ class RateRepositoryImpl @Inject constructor(
 
     private suspend fun fetchCurrencyNames(idToCharCode: Map<String, String>) {
         runCatching {
-            val charset = Charset.forName("windows-1251")
-            val dtosD0 = CurrencyValParser.parse(api.getValuteListD0().bytes().toString(charset))
-            val dtosD1 = CurrencyValParser.parse(api.getValuteListD1().bytes().toString(charset))
+            val dtosD0 = CurrencyValParser.parse(api.getValuteListD0().bytes().toString(CBRF_CHARSET))
+            val dtosD1 = CurrencyValParser.parse(api.getValuteListD1().bytes().toString(CBRF_CHARSET))
             // d=0 takes priority (more current names), d=1 fills in the rest
             val mergedById = (dtosD1 + dtosD0).distinctBy { it.cbrId }
             val entities = mergedById.mapNotNull { dto ->
@@ -145,7 +146,11 @@ class RateRepositoryImpl @Inject constructor(
             if (entities.isNotEmpty()) {
                 currencyNameDao.insertAll(entities)
             }
-        }
+        }.onFailure { Log.e(TAG, "fetchCurrencyNames failed", it) }
+    }
+
+    companion object {
+        private const val TAG = "RateRepositoryImpl"
     }
 
     private fun RateEntity.toDomain(namesMap: Map<String, CurrencyNameEntity>) = RateEntry(

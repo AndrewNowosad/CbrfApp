@@ -40,6 +40,7 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
 import android.util.Log
+import ru.cbrf.rates.BuildConfig
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.async
@@ -189,7 +190,7 @@ abstract class BaseRateWidget : GlanceAppWidget() {
     internal suspend fun loadData(context: Context, glanceId: GlanceId, maxCurrencies: Int): WidgetDisplayData? {
         val ep = EntryPointAccessors.fromApplication(context, WidgetEntryPoint::class.java)
         val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
-        Log.d("CbrfWidget", "loadData START appWidgetId=$appWidgetId glanceId=$glanceId")
+        if (BuildConfig.DEBUG) Log.d("CbrfWidget", "loadData START appWidgetId=$appWidgetId glanceId=$glanceId")
 
         return try {
             withTimeout(30_000L) {
@@ -208,7 +209,7 @@ abstract class BaseRateWidget : GlanceAppWidget() {
                     val m = async { appPrefs.widgetBgColorMode.first() }
                     PrefsSnapshot(c.await(), d.await(), i.await(), a.await(), r.await(), m.await())
                 }
-                Log.d("CbrfWidget", "loadData currencies=$currencies bgAlpha=$bgAlpha")
+                if (BuildConfig.DEBUG) Log.d("CbrfWidget", "loadData currencies=$currencies bgAlpha=$bgAlpha")
 
                 // Find effective date; if DB is empty, fetch from network first
                 var effectiveDate = repository.getLatestAvailableDate(today) ?: run {
@@ -221,7 +222,7 @@ abstract class BaseRateWidget : GlanceAppWidget() {
                 } else {
                     var result = getRates(effectiveDate, today)
                         .filter { it.charCode in currencies }
-                        .sortedBy { currencies.indexOf(it.charCode) }
+                        .sortedBy { currencies.indexOf(it.charCode).takeIf { i -> i >= 0 } ?: Int.MAX_VALUE }
 
                     if (result.isEmpty()) {
                         // Data missing for selected currencies — fetch and retry
@@ -229,13 +230,13 @@ abstract class BaseRateWidget : GlanceAppWidget() {
                         effectiveDate = repository.getLatestAvailableDate(today) ?: today
                         result = getRates(effectiveDate, today)
                             .filter { it.charCode in currencies }
-                            .sortedBy { currencies.indexOf(it.charCode) }
+                            .sortedBy { currencies.indexOf(it.charCode).takeIf { i -> i >= 0 } ?: Int.MAX_VALUE }
                     }
                     result
                 }
 
                 val dateStr = effectiveDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))
-                Log.d("CbrfWidget", "loadData END effectiveDate=$effectiveDate rates=${rates.size}")
+                if (BuildConfig.DEBUG) Log.d("CbrfWidget", "loadData END effectiveDate=$effectiveDate rates=${rates.size}")
 
                 WidgetDisplayData(
                     appWidgetId = appWidgetId,

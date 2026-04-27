@@ -2,6 +2,7 @@ package ru.cbrf.rates.worker
 
 import android.content.Context
 import androidx.hilt.work.HiltWorker
+import androidx.work.BackoffPolicy
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -50,10 +51,12 @@ class RateUpdateWorker @AssistedInject constructor(
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
 
+            // UpdateInterval minimum is H1 (1 hour) > Android's 15-minute floor, so no clamping needed.
             val request = PeriodicWorkRequestBuilder<RateUpdateWorker>(
                 interval.hours, TimeUnit.HOURS
             )
                 .setConstraints(constraints)
+                .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
