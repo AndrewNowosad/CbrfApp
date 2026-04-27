@@ -79,17 +79,17 @@ class LargeRateWidget : BaseRateWidget() {
                     ) {
                         Text(
                             text = displayData.displayDate,
-                            style = TextStyle(fontSize = 10.sp, color = ColorProvider(secondaryColor)),
+                            style = TextStyle(fontSize = 11.sp, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.defaultWeight()
                         )
                         Text(
                             text = "↻",
-                            style = TextStyle(fontSize = 14.sp, color = ColorProvider(secondaryColor)),
+                            style = TextStyle(fontSize = 16.sp, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.clickable(actionRunCallback<WidgetRefreshCallback>())
                         )
                         Text(
                             text = " ⚙",
-                            style = TextStyle(fontSize = 14.sp, color = ColorProvider(secondaryColor)),
+                            style = TextStyle(fontSize = 16.sp, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.clickable(actionStartActivity(configIntent))
                         )
                     }

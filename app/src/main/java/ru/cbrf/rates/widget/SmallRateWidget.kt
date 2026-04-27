@@ -72,14 +72,14 @@ class SmallRateWidget : BaseRateWidget() {
             // 3 tiers: tiny (<80dp) / compact (80-130dp) / full (>130dp)
             val isTiny = minDim < 80.dp
             val isFull = minDim > 130.dp
-            val codeTextSize = when { isTiny -> 9.sp; isFull -> 13.sp; else -> 11.sp }
-            val valueTextSize = when { isTiny -> 12.sp; isFull -> 20.sp; else -> 15.sp }
-            val tomorrowTextSize = when { isTiny -> 8.sp; else -> 10.sp }
+            val codeTextSize = when { isTiny -> 10.sp; isFull -> 15.sp; else -> 12.sp }
+            val valueTextSize = when { isTiny -> 13.sp; isFull -> 22.sp; else -> 17.sp }
+            val tomorrowTextSize = when { isTiny -> 9.sp; else -> 11.sp }
             val showFlag = !isTiny
             val showTomorrow = isFull
             val pad = if (isTiny) 4.dp else 8.dp
-            val headerSize = when { isTiny -> 8.sp; isFull -> 10.sp; else -> 9.sp }
-            val iconSize = when { isTiny -> 10.sp; isFull -> 14.sp; else -> 11.sp }
+            val headerSize = when { isTiny -> 9.sp; isFull -> 11.sp; else -> 10.sp }
+            val iconSize = when { isTiny -> 11.sp; isFull -> 16.sp; else -> 12.sp }
 
             Box(
                 modifier = GlanceModifier

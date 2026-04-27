@@ -79,17 +79,17 @@ class MediumRateWidget : BaseRateWidget() {
                     ) {
                         Text(
                             text = displayData.displayDate,
-                            style = TextStyle(fontSize = 10.sp, color = ColorProvider(secondaryColor)),
+                            style = TextStyle(fontSize = 11.sp, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.defaultWeight()
                         )
                         Text(
                             text = "↻",
-                            style = TextStyle(fontSize = 14.sp, color = ColorProvider(secondaryColor)),
+                            style = TextStyle(fontSize = 16.sp, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.clickable(actionRunCallback<WidgetRefreshCallback>())
                         )
                         Text(
                             text = " ⚙",
-                            style = TextStyle(fontSize = 14.sp, color = ColorProvider(secondaryColor)),
+                            style = TextStyle(fontSize = 16.sp, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.clickable(actionStartActivity(configIntent))
                         )
                     }
@@ -107,7 +107,8 @@ class MediumRateWidget : BaseRateWidget() {
                                     decimalPlaces = displayData.decimalPlaces,
                                     invertColors = displayData.invertColors,
                                     contentColor = contentColor,
-                                    secondaryColor = secondaryColor
+                                    secondaryColor = secondaryColor,
+                                    verticalPadding = 2.dp
                                 )
                             }
                         }

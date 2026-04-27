@@ -114,7 +114,8 @@ fun WidgetCurrencyRow(
     decimalPlaces: Int,
     invertColors: Boolean,
     contentColor: Color = Color(0xFF212121),
-    secondaryColor: Color = Color(0xFF757575)
+    secondaryColor: Color = Color(0xFF757575),
+    verticalPadding: androidx.compose.ui.unit.Dp = 5.dp
 ) {
     val trend = rate.trend
     val trendColor: Color? = when {
@@ -125,12 +126,12 @@ fun WidgetCurrencyRow(
     val valueColor = trendColor ?: contentColor
 
     Row(
-        modifier = GlanceModifier.fillMaxWidth().padding(vertical = 5.dp),
+        modifier = GlanceModifier.fillMaxWidth().padding(vertical = verticalPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             text = "${rate.flagEmoji} ${rate.charCode}",
-            style = TextStyle(fontSize = 13.sp, fontWeight = FontWeight.Medium,
+            style = TextStyle(fontSize = 15.sp, fontWeight = FontWeight.Medium,
                 color = ColorProvider(contentColor)),
             modifier = GlanceModifier.defaultWeight()
         )
@@ -138,7 +139,7 @@ fun WidgetCurrencyRow(
             Text(
                 text = rate.todayValue.formatRate(decimalPlaces),
                 style = TextStyle(
-                    fontSize = 15.sp,
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Bold,
                     color = ColorProvider(valueColor)
                 )
@@ -153,7 +154,7 @@ fun WidgetCurrencyRow(
                 Text(
                     text = "→ ${rate.tomorrowValue.formatRate(decimalPlaces)}",
                     style = TextStyle(
-                        fontSize = 11.sp,
+                        fontSize = 13.sp,
                         color = ColorProvider(tomorrowColor)
                     )
                 )
