@@ -70,10 +70,10 @@ class WidgetConfigActivity : ComponentActivity() {
 
         val providerClass = AppWidgetManager.getInstance(this)
             .getAppWidgetInfo(effectiveId)?.provider?.className ?: ""
-        val sizeHint = when {
-            providerClass.contains(SmallRateWidgetReceiver::class.java.simpleName) -> "SMALL"
-            providerClass.contains(MediumRateWidgetReceiver::class.java.simpleName) -> "MEDIUM"
-            providerClass.contains(LargeRateWidgetReceiver::class.java.simpleName) -> "LARGE"
+        val sizeHint = when (providerClass) {
+            SmallRateWidgetReceiver::class.java.name -> "SMALL"
+            MediumRateWidgetReceiver::class.java.name -> "MEDIUM"
+            LargeRateWidgetReceiver::class.java.name -> "LARGE"
             else -> null
         }
         viewModel.init(effectiveId, sizeHint)
