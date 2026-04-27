@@ -11,6 +11,9 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -35,7 +38,6 @@ class AppPreferences @Inject constructor(
         private val KEY_INTERVAL = stringPreferencesKey("update_interval")
         private val KEY_DECIMALS = intPreferencesKey("decimal_places")
         private val KEY_INVERT_COLORS = booleanPreferencesKey("invert_colors")
-        private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_WIDGET_BG_ALPHA = floatPreferencesKey("widget_bg_alpha")
         private val KEY_WIDGET_CORNER_RADIUS = floatPreferencesKey("widget_corner_radius")
         private val KEY_WIDGET_BG_COLOR_MODE = stringPreferencesKey("widget_bg_color_mode")
@@ -48,9 +50,14 @@ class AppPreferences @Inject constructor(
         runCatching { AppTheme.valueOf(prefs[KEY_THEME] ?: "AUTO") }.getOrDefault(AppTheme.AUTO)
     }
 
-    val language: Flow<AppLanguage> = store.data.map { prefs ->
-        runCatching { AppLanguage.valueOf(prefs[KEY_LANGUAGE] ?: "AUTO") }.getOrDefault(AppLanguage.AUTO)
-    }
+    private val _language: MutableStateFlow<AppLanguage> = MutableStateFlow(
+        runCatching {
+            val stored = context.getSharedPreferences(LANG_PREFS, Context.MODE_PRIVATE)
+                .getString(KEY_LANGUAGE_SP, "AUTO") ?: "AUTO"
+            AppLanguage.valueOf(stored)
+        }.getOrDefault(AppLanguage.AUTO)
+    )
+    val language: StateFlow<AppLanguage> = _language.asStateFlow()
 
     val updateInterval: Flow<UpdateInterval> = store.data.map { prefs ->
         runCatching { UpdateInterval.valueOf(prefs[KEY_INTERVAL] ?: "H1") }.getOrDefault(UpdateInterval.H1)
@@ -80,10 +87,11 @@ class AppPreferences @Inject constructor(
     suspend fun setTheme(theme: AppTheme) = store.edit { it[KEY_THEME] = theme.name }
 
     suspend fun setLanguage(language: AppLanguage) {
-        // SharedPreferences for synchronous read in attachBaseContext
+        // SharedPreferences is the single source of truth for language;
+        // it is read synchronously in attachBaseContext before DataStore is available.
         context.getSharedPreferences(LANG_PREFS, Context.MODE_PRIVATE)
             .edit().putString(KEY_LANGUAGE_SP, language.name).apply()
-        store.edit { it[KEY_LANGUAGE] = language.name }
+        _language.value = language
     }
 
     suspend fun setUpdateInterval(interval: UpdateInterval) = store.edit { it[KEY_INTERVAL] = interval.name }
