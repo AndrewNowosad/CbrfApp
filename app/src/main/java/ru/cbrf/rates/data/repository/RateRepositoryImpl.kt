@@ -12,6 +12,8 @@ import ru.cbrf.rates.domain.model.CurrencyMeta
 import ru.cbrf.rates.domain.model.RateEntry
 import ru.cbrf.rates.domain.repository.RateRepository
 import java.nio.charset.Charset
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -26,6 +28,8 @@ class RateRepositoryImpl @Inject constructor(
 
     private val isoFormatter = DateTimeFormatter.ISO_LOCAL_DATE
     private val cbrfDateFormatter = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+
+    private val currencyNamesMutex = Mutex()
 
     override suspend fun getRatesForDate(date: LocalDate): List<RateEntry> {
         val entities = dao.getRatesForDate(date.format(isoFormatter))
@@ -116,7 +120,7 @@ class RateRepositoryImpl @Inject constructor(
     private suspend fun ensureCurrencyNamesLoaded(
         charCodes: Set<String>,
         idToCharCode: Map<String, String>
-    ) {
+    ) = currencyNamesMutex.withLock {
         val existingCodes = currencyNameDao.getAllCharCodes().toSet()
         if (existingCodes.isEmpty() || !existingCodes.containsAll(charCodes)) {
             fetchCurrencyNames(idToCharCode)
