@@ -7,6 +7,8 @@
 
     <string name="today">Сегодня</string>
     <string name="tomorrow">Завтра</string>
+    <string name="header_currency">Валюта</string>
+    <string name="header_rate">Курс</string>
     <string name="select_date">Выбрать дату</string>
     <string name="pull_to_refresh">Потяните для обновления</string>
     <string name="rate_date_format">dd MMM yyyy</string>

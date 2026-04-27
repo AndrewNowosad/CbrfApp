@@ -9,6 +9,8 @@
     <!-- Main screen -->
     <string name="today">Today</string>
     <string name="tomorrow">Tomorrow</string>
+    <string name="header_currency">Currency</string>
+    <string name="header_rate">Rate</string>
     <string name="select_date">Select date</string>
     <string name="pull_to_refresh">Pull to refresh</string>
     <string name="rate_date_format">dd MMM yyyy</string>

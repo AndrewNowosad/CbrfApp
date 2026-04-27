@@ -167,7 +167,6 @@ fun MainScreen(
                     } else {
                         LazyColumn {
                             item {
-                                // Header row
                                 RateListHeader(hasTomorrow = state.rates.any { it.tomorrowValue != null })
                             }
                             items(state.rates, key = { it.charCode }) { rate ->
@@ -229,19 +228,19 @@ private fun RateListHeader(hasTomorrow: Boolean) {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Currency",
+            text = stringResource(R.string.header_currency),
             style = MaterialTheme.typography.labelMedium,
             modifier = Modifier.weight(1f)
         )
         Text(
-            text = "Today",
+            text = stringResource(R.string.header_rate),
             style = MaterialTheme.typography.labelMedium,
             textAlign = TextAlign.End,
             modifier = Modifier.width(90.dp)
         )
         if (hasTomorrow) {
             Text(
-                text = "Tomorrow",
+                text = stringResource(R.string.tomorrow),
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = TextAlign.End,
                 modifier = Modifier.width(90.dp)
