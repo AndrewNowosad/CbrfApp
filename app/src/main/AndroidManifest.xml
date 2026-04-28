@@ -85,6 +85,15 @@
                 tools:node="remove" />
         </provider>
 
+        <!-- Triggers a widget refresh when the calendar date changes at midnight -->
+        <receiver
+            android:name=".widget.DateChangedReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.DATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <receiver
             android:name="androidx.work.impl.background.systemalarm.RescheduleReceiver"
             android:exported="false"

@@ -46,7 +46,11 @@ class RateUpdateWorker @AssistedInject constructor(
     companion object {
         private const val WORK_NAME = "rate_update_periodic"
 
-        fun schedule(context: Context, interval: UpdateInterval) {
+        fun schedule(
+            context: Context,
+            interval: UpdateInterval,
+            policy: ExistingPeriodicWorkPolicy = ExistingPeriodicWorkPolicy.UPDATE
+        ) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
                 .build()
@@ -59,11 +63,7 @@ class RateUpdateWorker @AssistedInject constructor(
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 15, TimeUnit.MINUTES)
                 .build()
 
-            WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-                WORK_NAME,
-                ExistingPeriodicWorkPolicy.UPDATE,
-                request
-            )
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork(WORK_NAME, policy, request)
         }
 
         fun cancel(context: Context) {

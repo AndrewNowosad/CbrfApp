@@ -69,15 +69,18 @@ class RateRepositoryImpl @Inject constructor(
             val publishDate: LocalDate = rawPublishDate
 
             if (publishDate != date) {
+                val today = LocalDate.now()
                 // CBR returned an earlier date (weekend/holiday gap).
-                // Cache all dates from publishDate through requestedDate — today and past
-                // dates are already final and will not receive a different publication.
-                // Only future dates are excluded (CBR will publish real rates for them later).
-                if (date <= LocalDate.now() && publishDate < date) {
+                // Cache past dates from publishDate up to (but not including) today — those are
+                // final. Today's slot is intentionally left empty: CBR will publish today's real
+                // rates later, and filling it now with stale data would prevent the next scheduled
+                // fetch from picking up the fresh publication (fetchRatesIfNeeded is cache-first).
+                if (date <= today && publishDate < date) {
                     val charCodes = dtos.map { it.charCode }.toSet()
                     val idToCharCode = dtos.associate { it.cbrId to it.charCode }
+                    val fillUpTo = if (date == today) today.minusDays(1) else date
                     var d = publishDate
-                    while (d <= date) {
+                    while (d <= fillUpTo) {
                         val dStr = d.format(isoFormatter)
                         if (dao.getRatesForDate(dStr).isEmpty()) {
                             dao.insertRates(buildEntities(dtos, dStr))
@@ -85,7 +88,9 @@ class RateRepositoryImpl @Inject constructor(
                         d = d.plusDays(1)
                     }
                     ensureCurrencyNamesLoaded(charCodes, idToCharCode)
-                    return@runCatching true
+                    // Return false when today's rates weren't cached yet so the caller knows
+                    // today's data is still unavailable and can fall back to the previous date.
+                    return@runCatching date != today
                 }
                 // Future date — real rates will be published later, don't cache yet.
                 return@runCatching false
