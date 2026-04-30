@@ -61,7 +61,7 @@ object CbrfXmlParser {
                             "NumCode" -> numCode = text
                             "Nominal" -> nominal = text.toIntOrNull() ?: 1
                             "Name" -> nameRu = text
-                            "VunitRate" -> value = text.replace(",", ".").toDoubleOrNull() ?: 0.0
+                            "Value" -> value = text.replace(",", ".").toDoubleOrNull() ?: 0.0
                         }
                     }
                 }
