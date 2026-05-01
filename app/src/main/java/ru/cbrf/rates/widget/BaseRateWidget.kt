@@ -310,7 +310,8 @@ fun WidgetCurrencyRow(
             Text(
                 text = "→ ${rate.tomorrowValue.formatRate(decimalPlaces)}",
                 style = TextStyle(
-                    fontSize = 13.sp,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold,
                     color = ColorProvider(tomorrowColor)
                 ),
                 modifier = GlanceModifier.padding(start = 6.dp)

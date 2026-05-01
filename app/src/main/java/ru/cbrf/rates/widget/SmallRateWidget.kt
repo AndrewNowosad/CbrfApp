@@ -121,7 +121,7 @@ class SmallRateWidget : BaseRateWidget() {
                         )
                         Text(
                             text = "→ ${rate.tomorrowValue.formatRate(displayData.decimalPlaces)}",
-                            style = TextStyle(fontSize = tomorrowTextSize, color = ColorProvider(tomorrowColor)),
+                            style = TextStyle(fontSize = valueTextSize, fontWeight = FontWeight.Bold, color = ColorProvider(tomorrowColor)),
                             modifier = GlanceModifier.padding(start = 4.dp)
                         )
                     }

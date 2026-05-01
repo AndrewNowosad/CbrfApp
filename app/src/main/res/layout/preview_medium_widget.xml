@@ -68,7 +68,8 @@
                 android:layout_marginStart="6dp"
                 android:text="→ 81.8450"
                 android:textColor="#388E3C"
-                android:textSize="13sp" />
+                android:textSize="17sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
         <!-- EUR row: flag+code | today → tomorrow -->
@@ -99,7 +100,8 @@
                 android:layout_marginStart="6dp"
                 android:text="→ 91.9760"
                 android:textColor="#D32F2F"
-                android:textSize="13sp" />
+                android:textSize="17sp"
+                android:textStyle="bold" />
         </LinearLayout>
 
     </LinearLayout>
