@@ -54,25 +54,20 @@
                 android:textColor="#212121"
                 android:textSize="15sp"
                 android:textStyle="bold" />
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="end">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="81.5027"
-                    android:textColor="#388E3C"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="→ 81.8450"
-                    android:textColor="#388E3C"
-                    android:textSize="13sp" />
-            </LinearLayout>
+                android:text="81.5027"
+                android:textColor="#388E3C"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="→ 81.8450"
+                android:textColor="#388E3C"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <!-- EUR row -->
@@ -90,25 +85,20 @@
                 android:textColor="#212121"
                 android:textSize="15sp"
                 android:textStyle="bold" />
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="end">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="92.3184"
-                    android:textColor="#D32F2F"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="→ 91.9760"
-                    android:textColor="#D32F2F"
-                    android:textSize="13sp" />
-            </LinearLayout>
+                android:text="92.3184"
+                android:textColor="#D32F2F"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="→ 91.9760"
+                android:textColor="#D32F2F"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <!-- GBP row -->
@@ -126,25 +116,20 @@
                 android:textColor="#212121"
                 android:textSize="15sp"
                 android:textStyle="bold" />
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="end">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="107.8341"
-                    android:textColor="#388E3C"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="→ 108.1260"
-                    android:textColor="#388E3C"
-                    android:textSize="13sp" />
-            </LinearLayout>
+                android:text="107.8341"
+                android:textColor="#388E3C"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="→ 108.1260"
+                android:textColor="#388E3C"
+                android:textSize="13sp" />
         </LinearLayout>
 
         <!-- CNY row -->
@@ -162,25 +147,20 @@
                 android:textColor="#212121"
                 android:textSize="15sp"
                 android:textStyle="bold" />
-            <LinearLayout
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="end">
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="11.2058"
-                    android:textColor="#D32F2F"
-                    android:textSize="17sp"
-                    android:textStyle="bold" />
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="→ 11.1840"
-                    android:textColor="#D32F2F"
-                    android:textSize="13sp" />
-            </LinearLayout>
+                android:text="11.2058"
+                android:textColor="#D32F2F"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="→ 11.1840"
+                android:textColor="#D32F2F"
+                android:textSize="13sp" />
         </LinearLayout>
 
     </LinearLayout>

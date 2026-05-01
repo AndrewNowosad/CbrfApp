@@ -47,21 +47,27 @@
             android:textColor="#212121"
             android:textSize="12sp"
             android:textStyle="bold" />
-        <TextView
+        <!-- Today → Tomorrow in one row -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="81.5027"
-            android:textColor="#388E3C"
-            android:textSize="17sp"
-            android:textStyle="bold" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="→ 81.8450"
-            android:textColor="#388E3C"
-            android:textSize="11sp" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="81.5027"
+                android:textColor="#388E3C"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:text="→ 81.8450"
+                android:textColor="#388E3C"
+                android:textSize="11sp" />
+        </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>

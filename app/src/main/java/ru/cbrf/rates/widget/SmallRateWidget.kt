@@ -13,8 +13,10 @@ import androidx.glance.appwidget.action.actionStartActivity
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
@@ -101,14 +103,6 @@ class SmallRateWidget : BaseRateWidget() {
                         color = ColorProvider(contentColor)
                     )
                 )
-                Text(
-                    text = rate.todayValue.formatRate(displayData.decimalPlaces),
-                    style = TextStyle(
-                        fontSize = valueTextSize,
-                        fontWeight = FontWeight.Bold,
-                        color = ColorProvider(valueColor)
-                    )
-                )
                 if (showTomorrow && rate.tomorrowValue != null) {
                     val tomorrowTrend = rate.tomorrowValue.compareTo(rate.todayValue)
                     val tomorrowColor = when {
@@ -116,9 +110,29 @@ class SmallRateWidget : BaseRateWidget() {
                         tomorrowTrend < 0 -> if (displayData.invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
                         else -> secondaryColor
                     }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = rate.todayValue.formatRate(displayData.decimalPlaces),
+                            style = TextStyle(
+                                fontSize = valueTextSize,
+                                fontWeight = FontWeight.Bold,
+                                color = ColorProvider(valueColor)
+                            )
+                        )
+                        Text(
+                            text = "→ ${rate.tomorrowValue.formatRate(displayData.decimalPlaces)}",
+                            style = TextStyle(fontSize = tomorrowTextSize, color = ColorProvider(tomorrowColor)),
+                            modifier = GlanceModifier.padding(start = 4.dp)
+                        )
+                    }
+                } else {
                     Text(
-                        text = "→ ${rate.tomorrowValue.formatRate(displayData.decimalPlaces)}",
-                        style = TextStyle(fontSize = tomorrowTextSize, color = ColorProvider(tomorrowColor))
+                        text = rate.todayValue.formatRate(displayData.decimalPlaces),
+                        style = TextStyle(
+                            fontSize = valueTextSize,
+                            fontWeight = FontWeight.Bold,
+                            color = ColorProvider(valueColor)
+                        )
                     )
                 }
             }

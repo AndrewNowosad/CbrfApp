@@ -292,30 +292,29 @@ fun WidgetCurrencyRow(
                 color = ColorProvider(contentColor)),
             modifier = GlanceModifier.defaultWeight()
         )
-        androidx.glance.layout.Column(horizontalAlignment = Alignment.End) {
-            Text(
-                text = rate.todayValue.formatRate(decimalPlaces),
-                style = TextStyle(
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = ColorProvider(valueColor)
-                )
+        Text(
+            text = rate.todayValue.formatRate(decimalPlaces),
+            style = TextStyle(
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = ColorProvider(valueColor)
             )
-            if (rate.tomorrowValue != null) {
-                val tomorrowTrend = rate.tomorrowValue.compareTo(rate.todayValue)
-                val tomorrowColor = when {
-                    tomorrowTrend > 0 -> if (invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
-                    tomorrowTrend < 0 -> if (invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
-                    else -> secondaryColor
-                }
-                Text(
-                    text = "→ ${rate.tomorrowValue.formatRate(decimalPlaces)}",
-                    style = TextStyle(
-                        fontSize = 13.sp,
-                        color = ColorProvider(tomorrowColor)
-                    )
-                )
+        )
+        if (rate.tomorrowValue != null) {
+            val tomorrowTrend = rate.tomorrowValue.compareTo(rate.todayValue)
+            val tomorrowColor = when {
+                tomorrowTrend > 0 -> if (invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
+                tomorrowTrend < 0 -> if (invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
+                else -> secondaryColor
             }
+            Text(
+                text = "→ ${rate.tomorrowValue.formatRate(decimalPlaces)}",
+                style = TextStyle(
+                    fontSize = 13.sp,
+                    color = ColorProvider(tomorrowColor)
+                ),
+                modifier = GlanceModifier.padding(start = 6.dp)
+            )
         }
     }
 }
