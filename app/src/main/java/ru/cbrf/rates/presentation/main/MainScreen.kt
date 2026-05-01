@@ -261,8 +261,8 @@ private fun RateRow(
     val trend = rate.trend
     val trendColor = when {
         trend == null -> MaterialTheme.colorScheme.onSurface
-        trend > 0 -> if (invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
-        trend < 0 -> if (invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
+        trend > 0 -> if (invertColors) Color(0xFFE53935) else Color(0xFF43A047)
+        trend < 0 -> if (invertColors) Color(0xFF43A047) else Color(0xFFE53935)
         else -> MaterialTheme.colorScheme.onSurface
     }
 
@@ -308,8 +308,8 @@ private fun RateRow(
         if (rate.tomorrowValue != null) {
             val tomorrowTrend = rate.tomorrowValue.compareTo(rate.todayValue)
             val tomorrowColor = when {
-                tomorrowTrend > 0 -> if (invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
-                tomorrowTrend < 0 -> if (invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
+                tomorrowTrend > 0 -> if (invertColors) Color(0xFFE53935) else Color(0xFF43A047)
+                tomorrowTrend < 0 -> if (invertColors) Color(0xFF43A047) else Color(0xFFE53935)
                 else -> MaterialTheme.colorScheme.onSurface
             }
             Text(

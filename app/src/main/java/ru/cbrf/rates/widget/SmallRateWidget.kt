@@ -82,8 +82,8 @@ class SmallRateWidget : BaseRateWidget() {
         val trend = rate.trend
         val trendColor: Color? = when {
             trend == null || trend == 0 -> null
-            trend > 0 -> if (displayData.invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
-            else -> if (displayData.invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
+            trend > 0 -> if (displayData.invertColors) Color(0xFFE53935) else Color(0xFF43A047)
+            else -> if (displayData.invertColors) Color(0xFF43A047) else Color(0xFFE53935)
         }
         val valueColor = trendColor ?: contentColor
 
@@ -106,8 +106,8 @@ class SmallRateWidget : BaseRateWidget() {
                 if (showTomorrow && rate.tomorrowValue != null) {
                     val tomorrowTrend = rate.tomorrowValue.compareTo(rate.todayValue)
                     val tomorrowColor = when {
-                        tomorrowTrend > 0 -> if (displayData.invertColors) Color(0xFFD32F2F) else Color(0xFF388E3C)
-                        tomorrowTrend < 0 -> if (displayData.invertColors) Color(0xFF388E3C) else Color(0xFFD32F2F)
+                        tomorrowTrend > 0 -> if (displayData.invertColors) Color(0xFFE53935) else Color(0xFF43A047)
+                        tomorrowTrend < 0 -> if (displayData.invertColors) Color(0xFF43A047) else Color(0xFFE53935)
                         else -> secondaryColor
                     }
                     Row(verticalAlignment = Alignment.CenterVertically) {
