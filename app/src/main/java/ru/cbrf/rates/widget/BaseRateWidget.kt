@@ -53,6 +53,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
 import ru.cbrf.rates.presentation.MainActivity
+import ru.cbrf.rates.presentation.theme.trendColor
 import ru.cbrf.rates.util.LocaleHelper
 import ru.cbrf.rates.widget.config.WidgetConfigActivity
 import java.time.LocalDate
@@ -285,13 +286,7 @@ fun WidgetCurrencyRow(
     secondaryColor: Color = Color(0xFF757575),
     verticalPadding: androidx.compose.ui.unit.Dp = 5.dp
 ) {
-    val trend = rate.trend
-    val trendColor: Color? = when {
-        trend == null || trend == 0 -> null
-        trend > 0 -> if (invertColors) Color(0xFFE53935) else Color(0xFF43A047)
-        else -> if (invertColors) Color(0xFF43A047) else Color(0xFFE53935)
-    }
-    val valueColor = trendColor ?: contentColor
+    val valueColor = trendColor(rate.trend, invertColors) ?: contentColor
 
     Row(
         modifier = GlanceModifier.fillMaxWidth().padding(vertical = verticalPadding),
@@ -312,12 +307,7 @@ fun WidgetCurrencyRow(
             )
         )
         if (rate.tomorrowValue != null) {
-            val tomorrowTrend = rate.tomorrowValue.compareTo(rate.todayValue)
-            val tomorrowColor = when {
-                tomorrowTrend > 0 -> if (invertColors) Color(0xFFE53935) else Color(0xFF43A047)
-                tomorrowTrend < 0 -> if (invertColors) Color(0xFF43A047) else Color(0xFFE53935)
-                else -> secondaryColor
-            }
+            val tomorrowColor = trendColor(rate.tomorrowTrend, invertColors) ?: secondaryColor
             Text(
                 text = "→ ${rate.tomorrowValue.formatRate(decimalPlaces)}",
                 style = TextStyle(

@@ -21,6 +21,7 @@ import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import androidx.glance.unit.ColorProvider
+import ru.cbrf.rates.presentation.theme.trendColor
 
 class SmallRateWidget : BaseRateWidget() {
 
@@ -79,13 +80,7 @@ class SmallRateWidget : BaseRateWidget() {
         val showTomorrow = isFull
 
         val rate = displayData.currencies.first()
-        val trend = rate.trend
-        val trendColor: Color? = when {
-            trend == null || trend == 0 -> null
-            trend > 0 -> if (displayData.invertColors) Color(0xFFE53935) else Color(0xFF43A047)
-            else -> if (displayData.invertColors) Color(0xFF43A047) else Color(0xFFE53935)
-        }
-        val valueColor = trendColor ?: contentColor
+        val valueColor = trendColor(rate.trend, displayData.invertColors) ?: contentColor
 
         Box(
             modifier = GlanceModifier.fillMaxSize().clickable(actionStartActivity(mainIntent)),
@@ -104,12 +99,8 @@ class SmallRateWidget : BaseRateWidget() {
                     )
                 )
                 if (showTomorrow && rate.tomorrowValue != null) {
-                    val tomorrowTrend = rate.tomorrowValue.compareTo(rate.todayValue)
-                    val tomorrowColor = when {
-                        tomorrowTrend > 0 -> if (displayData.invertColors) Color(0xFFE53935) else Color(0xFF43A047)
-                        tomorrowTrend < 0 -> if (displayData.invertColors) Color(0xFF43A047) else Color(0xFFE53935)
-                        else -> secondaryColor
-                    }
+                    val tomorrowColor = trendColor(rate.tomorrowTrend, displayData.invertColors)
+                        ?: secondaryColor
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = rate.todayValue.formatRate(displayData.decimalPlaces),

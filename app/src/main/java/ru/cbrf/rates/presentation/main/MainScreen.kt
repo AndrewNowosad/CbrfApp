@@ -48,7 +48,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -59,6 +58,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.hilt.navigation.compose.hiltViewModel
 import ru.cbrf.rates.R
 import ru.cbrf.rates.domain.model.CurrencyRateUiModel
+import ru.cbrf.rates.presentation.theme.trendColor
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -259,12 +259,7 @@ private fun RateRow(
     val isRu = LocalConfiguration.current.locales[0].language == "ru"
     val displayName = if (isRu) rate.nameRu else rate.nameEn
     val trend = rate.trend
-    val trendColor = when {
-        trend == null -> MaterialTheme.colorScheme.onSurface
-        trend > 0 -> if (invertColors) Color(0xFFE53935) else Color(0xFF43A047)
-        trend < 0 -> if (invertColors) Color(0xFF43A047) else Color(0xFFE53935)
-        else -> MaterialTheme.colorScheme.onSurface
-    }
+    val trendColor = trendColor(trend, invertColors) ?: MaterialTheme.colorScheme.onSurface
 
     Row(
         modifier = Modifier
@@ -306,12 +301,8 @@ private fun RateRow(
 
         // Tomorrow value
         if (rate.tomorrowValue != null) {
-            val tomorrowTrend = rate.tomorrowValue.compareTo(rate.todayValue)
-            val tomorrowColor = when {
-                tomorrowTrend > 0 -> if (invertColors) Color(0xFFE53935) else Color(0xFF43A047)
-                tomorrowTrend < 0 -> if (invertColors) Color(0xFF43A047) else Color(0xFFE53935)
-                else -> MaterialTheme.colorScheme.onSurface
-            }
+            val tomorrowColor = trendColor(rate.tomorrowTrend, invertColors)
+                ?: MaterialTheme.colorScheme.onSurface
             Text(
                 text = rate.tomorrowValue.formatRate(decimalPlaces),
                 style = MaterialTheme.typography.bodyMedium,

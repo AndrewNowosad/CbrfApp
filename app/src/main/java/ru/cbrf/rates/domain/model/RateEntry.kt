@@ -28,5 +28,6 @@ data class CurrencyRateUiModel(
     val previousValue: Double?
 ) {
     val trend: Int? get() = previousValue?.let { todayValue.compareTo(it) }
+    val tomorrowTrend: Int? get() = tomorrowValue?.compareTo(todayValue)
     val displayName: String get() = if (Locale.getDefault().language == "ru") nameRu else nameEn
 }
