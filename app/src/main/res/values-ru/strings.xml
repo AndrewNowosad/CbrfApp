@@ -2,7 +2,6 @@
 <resources>
     <string name="app_name">Курсы ЦБ РФ</string>
 
-    <string name="nav_rates">Курсы</string>
     <string name="nav_settings">Настройки</string>
 
     <string name="today">Сегодня</string>
@@ -10,12 +9,9 @@
     <string name="header_currency">Валюта</string>
     <string name="header_rate">Курс</string>
     <string name="select_date">Выбрать дату</string>
-    <string name="pull_to_refresh">Потяните для обновления</string>
-    <string name="rate_date_format">dd MMM yyyy</string>
     <string name="no_rates">Нет данных о курсах</string>
     <string name="loading">Загрузка…</string>
     <string name="error_network">Ошибка сети. Показаны кешированные данные.</string>
-    <string name="last_updated">Обновлено: %s</string>
 
     <string name="settings_title">Настройки</string>
     <string name="settings_update_interval">Интервал обновления</string>
@@ -51,14 +47,10 @@
     <string name="widget_medium_description">Показывает курс до 2 валют</string>
     <string name="widget_large_label">Курс (Большой)</string>
     <string name="widget_large_description">Показывает курс до 4 валют</string>
-    <string name="widget_refresh">Обновить</string>
-    <string name="widget_settings">Настройки виджета</string>
-    <string name="widget_open_app">Открыть приложение</string>
 
     <string name="widget_config_title">Настройка виджета</string>
     <string name="widget_config_search">Поиск валюты…</string>
     <string name="widget_config_max_hint">Выберите до %d валют</string>
     <string name="widget_config_save">Сохранить</string>
     <string name="widget_config_cancel">Отмена</string>
-    <string name="widget_config_reorder_hint">Удерживайте и перетащите для сортировки</string>
 </resources>

@@ -49,7 +49,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -73,8 +76,9 @@ fun MainScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
 
+    val networkErrorMessage = stringResource(R.string.error_network)
     LaunchedEffect(state.hasError) {
-        if (state.hasError) snackbarHostState.showSnackbar("Network error. Showing cached data.")
+        if (state.hasError) snackbarHostState.showSnackbar(networkErrorMessage)
     }
 
     Scaffold(
@@ -170,7 +174,7 @@ fun MainScreen(
                     } else {
                         LazyColumn {
                             item {
-                                RateListHeader(hasTomorrow = state.rates.any { it.tomorrowValue != null })
+                                RateListHeader()
                             }
                             items(state.rates, key = { it.charCode }) { rate ->
                                 RateRow(
@@ -221,7 +225,7 @@ fun MainScreen(
 }
 
 @Composable
-private fun RateListHeader(hasTomorrow: Boolean) {
+private fun RateListHeader() {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -237,17 +241,8 @@ private fun RateListHeader(hasTomorrow: Boolean) {
         Text(
             text = stringResource(R.string.header_rate),
             style = MaterialTheme.typography.labelMedium,
-            textAlign = TextAlign.End,
-            modifier = Modifier.width(90.dp)
+            textAlign = TextAlign.End
         )
-        if (hasTomorrow) {
-            Text(
-                text = stringResource(R.string.tomorrow),
-                style = MaterialTheme.typography.labelMedium,
-                textAlign = TextAlign.End,
-                modifier = Modifier.width(90.dp)
-            )
-        }
     }
 }
 
@@ -291,27 +286,25 @@ private fun RateRow(
             )
         }
 
-        // Today value
+        // Today value, with "→ tomorrow" appended when next-day rates are published.
+        // The arrow shares the tomorrow trend color — same as in the widgets.
+        val tomorrowColor = trendColor(rate.tomorrowTrend, invertColors)
+            ?: MaterialTheme.colorScheme.onSurface
         Text(
-            text = rate.todayValue.formatRate(decimalPlaces),
+            text = buildAnnotatedString {
+                withStyle(SpanStyle(color = trendColor)) {
+                    append(rate.todayValue.formatRate(decimalPlaces))
+                }
+                if (rate.tomorrowValue != null) {
+                    withStyle(SpanStyle(color = tomorrowColor)) {
+                        append(" → ${rate.tomorrowValue.formatRate(decimalPlaces)}")
+                    }
+                }
+            },
             style = MaterialTheme.typography.bodyMedium,
-            color = trendColor,
             textAlign = TextAlign.End,
-            modifier = Modifier.width(90.dp)
+            maxLines = 1
         )
-
-        // Tomorrow value
-        if (rate.tomorrowValue != null) {
-            val tomorrowColor = trendColor(rate.tomorrowTrend, invertColors)
-                ?: MaterialTheme.colorScheme.onSurface
-            Text(
-                text = rate.tomorrowValue.formatRate(decimalPlaces),
-                style = MaterialTheme.typography.bodyMedium,
-                color = tomorrowColor,
-                textAlign = TextAlign.End,
-                modifier = Modifier.width(90.dp)
-            )
-        }
     }
 }
 
