@@ -23,7 +23,10 @@ object WidgetUpdateHelper {
         for (glanceId in glanceIds) {
             val data = widget.loadData(context, glanceId, maxCurrencies) ?: continue
             updateAppWidgetState(context, PreferencesGlanceStateDefinition, glanceId) { prefs ->
-                prefs.toMutablePreferences().also { it.writeWidgetData(data) }
+                prefs.toMutablePreferences().also {
+                    it.writeWidgetData(data)
+                    it.remove(WidgetStateKeys.REFRESHING)
+                }
             }
             widget.update(context, glanceId)
         }

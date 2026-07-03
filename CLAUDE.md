@@ -47,7 +47,7 @@ data/          → Room DB, Retrofit + XML parsers, DataStore, repository impl
 ## Key Patterns to Know
 
 ### Date Fallback
-`RateRepositoryImpl` walks back up to 7 days when today's rates aren't published (weekends/holidays). Tomorrow's rates are cached opportunistically. Data older than 60 days is auto-evicted.
+When today's rates aren't published (weekends/holidays), CBR responds to `date_req=today` with the latest published rates and their date; `RateRepositoryImpl` reads it from the `ValCurs Date` attribute and backfills the cache up to yesterday, leaving today's slot empty. `RefreshTodayRatesUseCase` then resolves the effective date via `getLatestAvailableDate` — no day-by-day walk-back. Tomorrow's rates are cached opportunistically. Data older than 60 days is auto-evicted.
 
 ### Widget State (Glance)
 Widgets use `PreferencesGlanceStateDefinition`. `WidgetUpdateHelper` calls `loadData()` → `updateAppWidgetState()` → `widget.update()`. Inside `provideGlance()`, call `loadDataAndPersistState()` once, then read `currentState<Preferences>()` reactively — never capture static data in `provideContent{}`. `DateChangedReceiver` triggers a refresh at midnight.

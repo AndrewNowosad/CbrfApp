@@ -85,7 +85,7 @@ fun MainScreen(
                     Column {
                         Text(stringResource(R.string.app_name))
                         Text(
-                            text = state.displayDate.format(remember { DateTimeFormatter.ofPattern("dd MMM yyyy") }),
+                            text = state.displayDate.format(remember { DateTimeFormatter.ofPattern("dd MMM yyyy, EEE") }),
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

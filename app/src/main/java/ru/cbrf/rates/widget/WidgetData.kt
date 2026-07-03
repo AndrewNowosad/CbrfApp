@@ -40,6 +40,14 @@ internal object WidgetStateKeys {
     val CORNER_RADIUS = floatPreferencesKey("cornerRadius")
     val BG_COLOR_MODE = stringPreferencesKey("bgColorMode")
     val CURRENCIES_DATA = stringPreferencesKey("currencies")
+
+    /**
+     * Set by [WidgetRefreshCallback] while a manual refresh is in flight; the widget shows a
+     * spinner instead of the refresh icon. Deliberately NOT cleared by [writeWidgetData]:
+     * provideGlance persists state on every (re)start and would kill the spinner mid-refresh.
+     * Cleared by [WidgetUpdateHelper] when fresh data lands.
+     */
+    val REFRESHING = booleanPreferencesKey("refreshing")
 }
 
 internal fun MutablePreferences.writeWidgetData(data: WidgetDisplayData) {

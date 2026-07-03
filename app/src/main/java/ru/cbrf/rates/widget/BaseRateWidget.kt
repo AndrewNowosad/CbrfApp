@@ -16,6 +16,7 @@ import androidx.glance.GlanceModifier
 import androidx.glance.LocalContext
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.CircularProgressIndicator
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.action.actionRunCallback
@@ -33,6 +34,7 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.state.GlanceStateDefinition
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import androidx.glance.text.FontWeight
@@ -51,10 +53,10 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
 import ru.cbrf.rates.presentation.MainActivity
+import ru.cbrf.rates.util.LocaleHelper
 import ru.cbrf.rates.widget.config.WidgetConfigActivity
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
 
 /** Sizes used by the header row. Subclasses may override [headerConfig] to return responsive values. */
 data class HeaderConfig(
@@ -165,11 +167,18 @@ abstract class BaseRateWidget : GlanceAppWidget() {
                             style = TextStyle(fontSize = hc.headerSize, color = ColorProvider(secondaryColor)),
                             modifier = GlanceModifier.defaultWeight()
                         )
-                        Text(
-                            text = "↻",
-                            style = TextStyle(fontSize = hc.iconSize, color = ColorProvider(secondaryColor)),
-                            modifier = GlanceModifier.clickable(actionRunCallback<WidgetRefreshCallback>())
-                        )
+                        if (prefs[WidgetStateKeys.REFRESHING] == true) {
+                            CircularProgressIndicator(
+                                modifier = GlanceModifier.size(hc.iconSize.value.dp),
+                                color = ColorProvider(secondaryColor)
+                            )
+                        } else {
+                            Text(
+                                text = "↻",
+                                style = TextStyle(fontSize = hc.iconSize, color = ColorProvider(secondaryColor)),
+                                modifier = GlanceModifier.clickable(actionRunCallback<WidgetRefreshCallback>())
+                            )
+                        }
                         Text(
                             text = " ⚙",
                             style = TextStyle(fontSize = hc.iconSize, color = ColorProvider(secondaryColor)),
@@ -235,7 +244,9 @@ abstract class BaseRateWidget : GlanceAppWidget() {
                     result
                 }
 
-                val dateStr = effectiveDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT))
+                // Same base format as MainScreen ("dd MMM yyyy") + weekday, in the app language
+                val locale = LocaleHelper.selectedLocale(context)
+                val dateStr = effectiveDate.format(DateTimeFormatter.ofPattern("dd MMM yyyy, EEE", locale))
                 if (BuildConfig.DEBUG) Log.d("CbrfWidget", "loadData END effectiveDate=$effectiveDate rates=${rates.size}")
 
                 WidgetDisplayData(
