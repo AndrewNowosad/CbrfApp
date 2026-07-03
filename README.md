@@ -9,7 +9,7 @@ Android app that shows daily foreign exchange rates from the [Central Bank of th
 **Main screen**
 - Full list of CBRF currency rates for today (and tomorrow when published)
 - Color-coded trend indicators — green/red (invertible for color-blind users)
-- Date picker for historical rate lookup
+- Date picker and horizontal swipe for historical rate lookup
 - Pull-to-refresh
 
 **Home screen widgets** (Jetpack Glance)
@@ -27,7 +27,7 @@ Each widget is individually configurable (currency selection, ordering) and auto
 - Invert trend colors
 - Language: system / English / Russian
 - Theme: system / light / dark
-- Widget background mode and corner radius
+- Widget background mode, transparency and corner radius
 
 ## Tech stack
 

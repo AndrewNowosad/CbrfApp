@@ -15,8 +15,9 @@ CbrfApp displays daily foreign exchange rates from the Central Bank of Russia (C
 ./gradlew test                   # Unit tests
 ./gradlew connectedAndroidTest   # Instrumented tests (device/emulator)
 ./gradlew lint                   # Lint checks
-./gradlew ktfmtFormat            # Format Kotlin code
 ```
+
+No code formatter plugin is configured — match the existing code style by hand.
 
 All dependencies are declared in `gradle/libs.versions.toml` and accessed via `libs.*` aliases.
 
@@ -64,7 +65,10 @@ Widgets use `PreferencesGlanceStateDefinition`. `WidgetUpdateHelper` calls `load
 CBRF returns Windows-1251 encoded XML. Two custom pull parsers handle this: `CbrfXmlParser` (daily rates) and `CurrencyValParser` (currency metadata). Retrofit uses `ScalarsConverterFactory` to get raw `ResponseBody`.
 
 ### Trend Colors
-`GetRatesForDisplayUseCase` computes up/down trends by comparing to the previous available date's rates. Green = up, Red = down (invertible in settings for color-blind users). Tomorrow's rate color is relative to today.
+`GetRatesForDisplayUseCase` computes up/down trends by comparing to the previous available date's rates. Green = up, Red = down (invertible in settings for color-blind users). Tomorrow's rate color is relative to today. The color mapping lives in one shared helper — `trendColor()` in `presentation/theme/TrendColor.kt`, used by the Compose UI and all widgets; don't reintroduce inline hex colors.
+
+### Tomorrow's Rates
+CBR publishes next-day rates in advance; every refresh opportunistically caches them. `tomorrowValue` is populated when the displayed date is the *effective* current date — today, or the latest published date before it when today's rates aren't out yet (weekends/holidays). Comparing against `LocalDate.now()` alone is a known trap: on such days the UI and widgets display the effective date, not today.
 
 ## API Endpoints
 
