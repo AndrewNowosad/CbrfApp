@@ -41,7 +41,7 @@ class WidgetConfigViewModel @Inject constructor(
     private val widgetPrefs: WidgetPreferences,
     private val getRates: GetRatesForDisplayUseCase,
     private val refreshRates: RefreshTodayRatesUseCase,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(WidgetConfigUiState())

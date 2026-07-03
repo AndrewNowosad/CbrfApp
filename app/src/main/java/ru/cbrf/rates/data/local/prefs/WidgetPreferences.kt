@@ -17,7 +17,7 @@ private val Context.widgetDataStore: DataStore<Preferences> by preferencesDataSt
 
 @Singleton
 class WidgetPreferences @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) {
     private val store = context.widgetDataStore
 

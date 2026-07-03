@@ -20,7 +20,7 @@ object DatabaseModule {
     @Singleton
     fun provideRateDatabase(@ApplicationContext context: Context): RateDatabase =
         Room.databaseBuilder(context, RateDatabase::class.java, "cbrf_rates.db")
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration(dropAllTables = true)
             .build()
 
     @Provides

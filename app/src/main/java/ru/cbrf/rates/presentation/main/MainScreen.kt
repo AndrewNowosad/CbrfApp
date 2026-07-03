@@ -24,7 +24,7 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.SelectableDates
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -176,7 +176,7 @@ fun MainScreen(
                                     decimalPlaces = state.decimalPlaces,
                                     invertColors = state.invertColors
                                 )
-                                Divider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
+                                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 0.5.dp)
                             }
                         }
                     }

@@ -35,7 +35,7 @@ data class SettingsUiState(
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val prefs: AppPreferences,
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val exceptionHandler = CoroutineExceptionHandler { _, e ->
