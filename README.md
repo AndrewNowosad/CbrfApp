@@ -34,10 +34,10 @@ Each widget is individually configurable (currency selection, ordering) and auto
 | Layer | Libraries |
 |-------|-----------|
 | UI | Jetpack Compose (BOM 2024.09), Glance 1.1, Material 3 |
-| DI | Hilt 2.51 |
-| Data | Room 2.6, DataStore 1.1, Retrofit 2.11 + OkHttp 4.12, kotlinx.serialization |
+| DI | Hilt 2.60 |
+| Data | Room 2.8, DataStore 1.1, Retrofit 2.11 + OkHttp 4.12, kotlinx.serialization |
 | Background | WorkManager 2.9 |
-| Language | Kotlin 2.0, Coroutines 1.8 |
+| Language | Kotlin 2.2, Coroutines 1.8 |
 
 ## Architecture
 
@@ -53,7 +53,7 @@ Dependency injection via Hilt with entry points for widgets and workers.
 
 ## Build
 
-**Requirements:** Android Studio Hedgehog+, JDK 17, min SDK 31, target SDK 35.
+**Requirements:** Android Studio Panda 4 (2025.3.4)+, JDK 17, min SDK 31, target SDK 35. Built with AGP 9.2 / Gradle 9.6.
 
 ```bash
 # debug

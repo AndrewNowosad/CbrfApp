@@ -20,7 +20,13 @@ CbrfApp displays daily foreign exchange rates from the Central Bank of Russia (C
 
 All dependencies are declared in `gradle/libs.versions.toml` and accessed via `libs.*` aliases.
 
-Min SDK: 31, Target SDK: 35, JDK: 17.
+Min SDK: 31, Target SDK: 35, JDK: 17. AGP 9.2 / Gradle 9.6 / Kotlin 2.2 (requires Android Studio Panda 4+).
+
+### AGP 9 Build Constraints
+
+- **Built-in Kotlin**: AGP 9 compiles Kotlin itself — the `org.jetbrains.kotlin.android` plugin is intentionally absent (applying it fails with "Cannot add extension with name 'kotlin'"). There is no `kotlinOptions` block; `jvmTarget` comes from `compileOptions.targetCompatibility`.
+- **KSP** must stay on the Kotlin-decoupled `2.3+` line; `2.2.x-y.z` versions are incompatible with built-in Kotlin.
+- **`compileOnly(libs.errorprone.annotations)`** in `app/build.gradle.kts` is required: Hilt 2.60's generated code references `@CanIgnoreReturnValue` without pulling the annotations artifact onto the compile classpath. Do not remove it as "unused".
 
 ## Architecture
 
