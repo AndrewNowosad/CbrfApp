@@ -34,7 +34,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDatePickerState
@@ -195,33 +194,28 @@ fun MainScreen(
         // condition as the Tomorrow chip and the swipe.
         val maxDate = if (state.hasTomorrow) LocalDate.now().plusDays(1) else LocalDate.now()
         val maxDateMillis = maxDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
+        val initialMillis = state.displayDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
         val datePickerState = rememberDatePickerState(
-            initialSelectedDateMillis = state.displayDate
-                .atStartOfDay(ZoneOffset.UTC)
-                .toInstant()
-                .toEpochMilli(),
+            initialSelectedDateMillis = initialMillis,
             selectableDates = object : SelectableDates {
                 override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= maxDateMillis
             }
         )
+        // One-tap selection: apply the date and close as soon as it changes — no OK/Cancel.
+        // Requires picker-only mode (showModeToggle = false): in text-input mode the state
+        // updates mid-typing and would close the dialog on the first valid date.
+        LaunchedEffect(datePickerState.selectedDateMillis) {
+            val millis = datePickerState.selectedDateMillis
+            if (millis != null && millis != initialMillis) {
+                viewModel.setDisplayDate(Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate())
+                showDatePicker = false
+            }
+        }
         DatePickerDialog(
             onDismissRequest = { showDatePicker = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { millis ->
-                        val date = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
-                        viewModel.setDisplayDate(date)
-                    }
-                    showDatePicker = false
-                }) { Text("OK") }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) {
-                    Text(stringResource(R.string.widget_config_cancel))
-                }
-            }
+            confirmButton = {}
         ) {
-            DatePicker(state = datePickerState)
+            DatePicker(state = datePickerState, showModeToggle = false)
         }
     }
 }
