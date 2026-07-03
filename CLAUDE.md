@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This App Does
 
-CbrfApp displays daily foreign exchange rates from the Central Bank of Russia (CBRF). It fetches public XML feeds (no API key), caches rates in Room, and shows them in a Compose UI and three Glance home screen widgets (Small 1×1, Medium 1×2, Large 2×2).
+CbrfApp displays daily foreign exchange rates from the Central Bank of Russia (CBRF). It fetches public XML feeds (no API key), caches rates in Room, and shows them in a Compose UI and three Glance home screen widgets (Small 1×2, Medium 1×3, Large 2×3).
 
 ## Build Commands
 

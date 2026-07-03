@@ -15,9 +15,9 @@ Android app that shows daily foreign exchange rates from the [Central Bank of th
 **Home screen widgets** (Jetpack Glance)
 | Widget | Grid | Currencies shown |
 |--------|------|-----------------|
-| Small  | 1×1  | 1               |
-| Medium | 1×2  | up to 2         |
-| Large  | 2×2  | up to 4         |
+| Small  | 1×2  | 1               |
+| Medium | 1×3  | up to 2         |
+| Large  | 2×3  | up to 4         |
 
 Each widget is individually configurable (currency selection, ordering) and auto-refreshes in the background.
 
