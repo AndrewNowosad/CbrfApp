@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -48,6 +49,10 @@ class MainViewModel @Inject constructor(
     private val _rates = MutableStateFlow<List<CurrencyRateUiModel>>(emptyList())
     private val _effectiveDate = MutableStateFlow(LocalDate.now())
 
+    // Only one load may be in flight: a stale slow load (network) must not
+    // overwrite the rates of a newer fast one (cache) after a quick date change.
+    private var loadJob: Job? = null
+
     private data class DateRates(
         val displayDate: LocalDate,
         val effectiveDate: LocalDate,
@@ -86,7 +91,8 @@ class MainViewModel @Inject constructor(
     }
 
     fun refresh(force: Boolean = true) {
-        viewModelScope.launch(exceptionHandler) {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch(exceptionHandler) {
             _isLoading.value = true
             _hasError.value = false
             val result = refreshTodayRates(force = force)
@@ -98,8 +104,11 @@ class MainViewModel @Inject constructor(
                     loadRatesForDate(_displayDate.value)
                 }
             }.onFailure {
+                // Offline: the display date's slot may be empty (weekend/holiday) —
+                // fall back to the latest cached publication instead of a blank screen.
                 _hasError.value = true
-                loadRatesForDate(_displayDate.value)
+                val fallback = repository.getLatestAvailableDate(_displayDate.value)
+                loadRatesForDate(fallback ?: _displayDate.value)
             }
             _isLoading.value = false
         }
@@ -108,11 +117,18 @@ class MainViewModel @Inject constructor(
     fun setDisplayDate(date: LocalDate) {
         val clamped = minOf(date, LocalDate.now().plusDays(1))
         _displayDate.value = clamped
-        viewModelScope.launch(exceptionHandler) {
+        loadJob?.cancel()
+        loadJob = viewModelScope.launch(exceptionHandler) {
             _isLoading.value = true
             _hasError.value = false
             repository.fetchRatesIfNeeded(clamped).onFailure { _hasError.value = true }
             val displayEffective = repository.getLatestAvailableDate(clamped) ?: clamped
+            // A future date is displayable only once published — keeping "tomorrow" in the
+            // header over today's rates would mislabel them. Past dates keep the selected
+            // date: CBR rates stay in force through non-publication days.
+            if (clamped.isAfter(LocalDate.now()) && displayEffective.isBefore(clamped)) {
+                _displayDate.value = displayEffective
+            }
             loadRatesForDate(displayEffective)
             _isLoading.value = false
         }

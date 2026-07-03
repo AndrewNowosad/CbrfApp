@@ -61,7 +61,7 @@ import ru.cbrf.rates.domain.model.CurrencyRateUiModel
 import ru.cbrf.rates.presentation.theme.trendColor
 import java.time.Instant
 import java.time.LocalDate
-import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -144,7 +144,10 @@ fun MainScreen(
                                         viewModel.setDisplayDate(state.displayDate.minusDays(1))
                                     } else if (dragAccumulator < -80f) {
                                         val next = state.displayDate.plusDays(1)
-                                        if (!next.isAfter(LocalDate.now().plusDays(1))) {
+                                        // Tomorrow is reachable only once its rates are published,
+                                        // same condition as the Tomorrow chip.
+                                        val maxDate = if (state.hasTomorrow) LocalDate.now().plusDays(1) else LocalDate.now()
+                                        if (!next.isAfter(maxDate)) {
                                             viewModel.setDisplayDate(next)
                                         }
                                     }
@@ -186,15 +189,19 @@ fun MainScreen(
     }
 
     if (showDatePicker) {
-        val tomorrow = LocalDate.now().plusDays(1)
-        val tomorrowMillis = tomorrow.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        // Material3 DatePicker operates in UTC epoch millis — converting via the system
+        // zone shifts the highlighted day and the selectable bound off by one.
+        // Tomorrow is selectable only once its rates are published — same hasTomorrow
+        // condition as the Tomorrow chip and the swipe.
+        val maxDate = if (state.hasTomorrow) LocalDate.now().plusDays(1) else LocalDate.now()
+        val maxDateMillis = maxDate.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli()
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = state.displayDate
-                .atStartOfDay(ZoneId.systemDefault())
+                .atStartOfDay(ZoneOffset.UTC)
                 .toInstant()
                 .toEpochMilli(),
             selectableDates = object : SelectableDates {
-                override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= tomorrowMillis
+                override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= maxDateMillis
             }
         )
         DatePickerDialog(
@@ -202,7 +209,7 @@ fun MainScreen(
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { millis ->
-                        val date = Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()).toLocalDate()
+                        val date = Instant.ofEpochMilli(millis).atZone(ZoneOffset.UTC).toLocalDate()
                         viewModel.setDisplayDate(date)
                     }
                     showDatePicker = false

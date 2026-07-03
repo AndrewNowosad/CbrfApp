@@ -48,7 +48,12 @@ data/          → Room DB, Retrofit + XML parsers, DataStore, repository impl
 ## Key Patterns to Know
 
 ### Date Fallback
-When today's rates aren't published (weekends/holidays), CBR responds to `date_req=today` with the latest published rates and their date; `RateRepositoryImpl` reads it from the `ValCurs Date` attribute and backfills the cache up to yesterday, leaving today's slot empty. `RefreshTodayRatesUseCase` then resolves the effective date via `getLatestAvailableDate` — no day-by-day walk-back. Tomorrow's rates are cached opportunistically. Data older than 60 days is auto-evicted.
+When today's rates aren't published (weekends/holidays), CBR responds to `date_req=today` with the latest published rates and their date; `RateRepositoryImpl` reads it from the `ValCurs Date` attribute and backfills the cache up to yesterday, leaving today's slot empty. `RefreshTodayRatesUseCase` then resolves the effective date via `getLatestAvailableDate` — no day-by-day walk-back. Tomorrow's rates are cached opportunistically. Data older than 60 days is auto-evicted. When a refresh fails (offline), `MainViewModel` falls back to the latest cached publication instead of showing an empty list.
+
+### Date Selection (Main Screen)
+The date changes via the DatePicker dialog, Today/Tomorrow chips, or horizontal swipe on the list (±1 day forward capped at tomorrow when its rates are published, otherwise today — same `hasTomorrow` condition as the Tomorrow chip). The top bar always shows the user-*selected* date (`displayDate`); the rates list shows the effective date's publication (latest published ≤ selected). This silent substitution on weekends/holidays is **intentional** — CBR rates stay in force on non-publication days. It applies to *past* dates only: the DatePicker bounds selection by the same `hasTomorrow` condition (tomorrow selectable only when published), and as a backstop `setDisplayDate` snaps a future date back to the effective date if its rates turn out to be missing — never mislabeling today's rates as tomorrow's. Widgets, by contrast, display the effective date itself.
+
+Material3 `DatePicker` operates in UTC epoch millis: every conversion in `MainScreen` (initial selection, selectable-dates bound, result parsing) must use `ZoneOffset.UTC`, never the system zone — a system-zone conversion shifts the highlighted day and makes tomorrow unselectable in UTC+ timezones.
 
 ### Widget State (Glance)
 Widgets use `PreferencesGlanceStateDefinition`. `WidgetUpdateHelper` calls `loadData()` → `updateAppWidgetState()` → `widget.update()`. Inside `provideGlance()`, call `loadDataAndPersistState()` once, then read `currentState<Preferences>()` reactively — never capture static data in `provideContent{}`. `DateChangedReceiver` triggers a refresh at midnight.
@@ -68,7 +73,7 @@ CBRF returns Windows-1251 encoded XML. Two custom pull parsers handle this: `Cbr
 `GetRatesForDisplayUseCase` computes up/down trends by comparing to the previous available date's rates. Green = up, Red = down (invertible in settings for color-blind users). Tomorrow's rate color is relative to today. The color mapping lives in one shared helper — `trendColor()` in `presentation/theme/TrendColor.kt`, used by the Compose UI and all widgets; don't reintroduce inline hex colors.
 
 ### Tomorrow's Rates
-CBR publishes next-day rates in advance; every refresh opportunistically caches them. `tomorrowValue` is populated when the displayed date is the *effective* current date — today, or the latest published date before it when today's rates aren't out yet (weekends/holidays). Comparing against `LocalDate.now()` alone is a known trap: on such days the UI and widgets display the effective date, not today.
+CBR publishes next-day rates in advance; every refresh opportunistically caches them. `tomorrowValue` is populated when the displayed date is the *effective* current date — today, or the latest published date before it when today's rates aren't out yet (weekends/holidays). Comparing against `LocalDate.now()` alone is a known trap: on such days the rates shown (and the widget date) belong to the effective date, while the main screen header keeps the selected date.
 
 ## API Endpoints
 

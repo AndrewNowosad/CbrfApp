@@ -7,7 +7,7 @@ Android app that shows daily foreign exchange rates from the [Central Bank of th
 ## Features
 
 **Main screen**
-- Full list of CBRF currency rates for today (and tomorrow when published)
+- Full list of CBRF currency rates for today (and tomorrow when published); on weekends and holidays the latest published rates are shown, as they stay in force until the next publication
 - Color-coded trend indicators — green/red (invertible for color-blind users)
 - Date picker and horizontal swipe for historical rate lookup
 - Pull-to-refresh
